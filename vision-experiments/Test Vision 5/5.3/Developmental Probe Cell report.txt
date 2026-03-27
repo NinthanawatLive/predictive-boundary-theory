@@ -1,0 +1,119 @@
+
+==========================================================================================
+  Developmental Probe: 6 Stages in 12 Layers
+  Testing PBT Phase Transition Hypothesis
+==========================================================================================
+
+  [Probe 1] Linear Probe Accuracy per Layer (χ_l)
+  = ที่แต่ละ layer แยก safe/unsafe ได้แค่ไหน?
+    Layer  0 (Perception): χ_acc = 0.8155
+    Layer  1 (Perception): χ_acc = 0.8208
+    Layer  2 (Perception): χ_acc = 0.8171
+    Layer  3 (Perception): χ_acc = 0.8256
+    Layer  4 (Evaluation): χ_acc = 0.8353
+    Layer  5 (Evaluation): χ_acc = 0.8541
+    Layer  6 (Evaluation): χ_acc = 0.9002
+    Layer  7 (Evaluation): χ_acc = 0.9099
+    Layer  8 (Decision  ): χ_acc = 0.9453
+    Layer  9 (Decision  ): χ_acc = 0.9759
+    Layer 10 (Decision  ): χ_acc = 0.9984
+    Layer 11 (Decision  ): χ_acc = 0.9989
+
+  [Probe 2] Valence Complexity per Layer
+  = V_pain vs V_pleasure vs V_epistemic แยกได้แค่ไหน?
+    Layer  0 (Perception): Silhouette = -0.2506  V_p=0.000±0.000  V_pl=0.000±0.000  V_ep=0.000±0.000
+    Layer  1 (Perception): Silhouette = -0.2581  V_p=0.000±0.000  V_pl=0.000±0.000  V_ep=0.000±0.000
+    Layer  2 (Perception): Silhouette = +0.2972  V_p=0.137±0.183  V_pl=0.550±0.303  V_ep=0.130±0.175
+    Layer  3 (Perception): Silhouette = -0.0823  V_p=0.168±0.221  V_pl=0.180±0.219  V_ep=0.166±0.220
+    Layer  4 (Evaluation): Silhouette = -0.3039  V_p=0.000±0.000  V_pl=0.000±0.000  V_ep=0.000±0.000
+    Layer  5 (Evaluation): Silhouette = -0.3378  V_p=0.000±0.000  V_pl=0.000±0.000  V_ep=0.000±0.000
+    Layer  6 (Evaluation): Silhouette = -0.2550  V_p=1.000±0.000  V_pl=0.999±0.002  V_ep=1.000±0.000
+    Layer  7 (Evaluation): Silhouette = -0.1408  V_p=0.316±0.463  V_pl=0.288±0.429  V_ep=0.323±0.466
+    Layer  8 (Decision  ): Silhouette = -0.0493  V_p=0.344±0.471  V_pl=0.337±0.461  V_ep=0.344±0.471
+    Layer  9 (Decision  ): Silhouette = +0.0000  V_p=0.000±0.000  V_pl=0.000±0.000  V_ep=0.000±0.000
+    Layer 10 (Decision  ): Silhouette = -0.6213  V_p=0.000±0.000  V_pl=0.000±0.000  V_ep=1.000±0.000
+    Layer 11 (Decision  ): Silhouette = +0.0000  V_p=1.000±0.000  V_pl=1.000±0.000  V_ep=1.000±0.000
+
+  [Probe 3] Prediction Error Magnitude per Layer (F_l)
+  = ε มีขนาดเท่าไหร่ที่แต่ละ layer?
+    Layer  0 (Perception): F = 29.1909  F_safe = 25.0889  F_unsafe = 47.0606  ratio = 1.88x
+    Layer  1 (Perception): F = 16.3458  F_safe = 13.9658  F_unsafe = 26.7139  ratio = 1.91x
+    Layer  2 (Perception): F = 1.5428  F_safe = 1.2530  F_unsafe = 2.8053  ratio = 2.24x
+    Layer  3 (Perception): F = 6.2254  F_safe = 4.6200  F_unsafe = 13.2193  ratio = 2.86x
+    Layer  4 (Evaluation): F = 53.9553  F_safe = 46.5296  F_unsafe = 86.3044  ratio = 1.85x
+    Layer  5 (Evaluation): F = 75.9111  F_safe = 66.0877  F_unsafe = 118.7049  ratio = 1.80x
+    Layer  6 (Evaluation): F = 6.6344  F_safe = 5.8303  F_unsafe = 10.1374  ratio = 1.74x
+    Layer  7 (Evaluation): F = 15.1076  F_safe = 13.7884  F_unsafe = 20.8545  ratio = 1.51x
+    Layer  8 (Decision  ): F = 12.8973  F_safe = 12.1151  F_unsafe = 16.3047  ratio = 1.35x
+    Layer  9 (Decision  ): F = 85.8011  F_safe = 73.4755  F_unsafe = 139.4956  ratio = 1.90x
+    Layer 10 (Decision  ): F = 115.2007  F_safe = 101.6248  F_unsafe = 174.3420  ratio = 1.72x
+    Layer 11 (Decision  ): F = 414.0925  F_safe = 336.2669  F_unsafe = 753.1259  ratio = 2.24x
+
+  [Probe 4] Gate Distribution per Layer (Module A)
+  = gate เปิด/ปิดเท่าไหร่ที่แต่ละ layer?
+
+    Layer                 Gate_safe  Gate_unsafe  Δ(unsafe-safe)
+    ────────────────────────────────────────────────────────────
+    Layer  0 (Perception)     0.5898       1.0000         +0.4102
+    Layer  1 (Perception)     0.5878       1.0000         +0.4121
+    Layer  2 (Perception)     0.5859       1.0000         +0.4140
+    Layer  3 (Perception)     0.5840       1.0000         +0.4160
+    Layer  4 (Evaluation)     0.5821       1.0000         +0.4178
+    Layer  5 (Evaluation)     0.5803       1.0000         +0.4197
+    Layer  6 (Evaluation)     0.5784       1.0000         +0.4215
+    Layer  7 (Evaluation)     0.5768       1.0000         +0.4231
+    Layer  8 (Decision  )     0.5754       1.0000         +0.4246
+    Layer  9 (Decision  )     0.5739       1.0000         +0.4260
+    Layer 10 (Decision  )     0.5725       1.0000         +0.4275
+    Layer 11 (Decision  )     0.5711       1.0000         +0.4289
+
+  [Probe 5] LSTM M Gate Values: Safe vs Unsafe
+
+    Valence             f_safe     f_unsafe          Δ Interpretation
+    ──────────────────────────────────────────────────────────────────────
+    pain                1.0000       1.0000    -0.0000   จำ safe มากกว่า
+    pleasure            0.4216       0.4372    +0.0157   จำ unsafe มากกว่า
+    epistemic           0.9998       0.9997    -0.0001   จำ safe มากกว่า
+
+==========================================================================================
+  Visualization: Developmental Profile
+==========================================================================================
+
+==========================================================================================
+  Summary: Phase Transition Evidence
+==========================================================================================
+
+  Largest jumps in χ_l (Linear Probe):
+    Layer 5→6: Δχ = +0.0461 ★ potential PT!
+    Layer 7→8: Δχ = +0.0354 ★ potential PT!
+    Layer 8→9: Δχ = +0.0306 ★ potential PT!
+
+  Largest jumps in Silhouette:
+    Layer 9→10: ΔSil = -0.6213 ★ potential PT!
+    Layer 10→11: ΔSil = +0.6213 ★ potential PT!
+    Layer 1→2: ΔSil = +0.5553 ★ potential PT!
+
+  Largest jumps in F_l:
+    Layer 10→11: ΔF = +298.8918 ★ potential PT!
+    Layer 8→9: ΔF = +72.9038 ★ potential PT!
+    Layer 5→6: ΔF = -69.2767 ★ potential PT!
+
+  Zone Averages:
+    Zone                         χ_acc   Silhouette      F_l
+    ───────────────────────────────────────────────────────
+    Perception (0-3)            0.8197      -0.0735  13.3262
+    Evaluation (4-7)            0.8749      -0.2594  37.9021
+    Decision (8-11)             0.9796      -0.1676 156.9979
+
+  PBT Prediction Check:
+    χ increases across zones? (P→E→D should increase)
+      P=0.8197 → E=0.8749 → D=0.9796  ✅ increasing
+    F_unsafe > F_safe at all layers? (anomaly = more prediction error)
+      ✅ yes — unsafe always has higher F
+    Staircase vs gradual?
+      Between-zone variance / Within-zone variance = 9.03
+      ✅ staircase pattern (ratio > 1)
+
+==========================================================================================
+  Developmental Probe Complete!
+==========================================================================================

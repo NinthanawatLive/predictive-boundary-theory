@@ -1,19 +1,17 @@
-# Model weights (too large for git — download from Releases)
+# Large video files
+*.mp4
+*.avi
+*.mov
+
+# Large model weight files (too big for GitHub)
 *.pth
 *.pt
 *.bin
-*.safetensors
 
-# Python cache
+# Temporary files
+*.log
+*.aux
+*.out
 __pycache__/
 *.pyc
-*.pyo
-.ipynb_checkpoints/
-
-# OS files
 .DS_Store
-Thumbs.db
-
-# Claude internal
-CLAUDE.md
-.claude/

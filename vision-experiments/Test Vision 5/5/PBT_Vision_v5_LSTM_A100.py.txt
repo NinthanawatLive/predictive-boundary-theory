@@ -1,0 +1,835 @@
+# ════════════════════════════════════════════════════════════════════════════════════
+# PBT-V v5: A-E-V-M(LSTM)-W Loop — BRT-Inspired Module M Upgrade
+# CHANGE from v4.1: Module M upgraded from simple EMA to LSTM-style
+#   with differential beta_k bias per valence dimension
+# Inspired by: Block-Recurrent Transformers (Hutchins et al., NeurIPS 2022)
+#   BRT LSTM: c_{t+1} = c_t * f_t + z_t * i_t
+#   PBT M v5: V_acc_k = V_acc_k * f_k + z_k * i_k
+#   Addition: f_k has differential bias beta_k per valence dimension
+#             beta_pain > beta_pleasure > beta_epistemic
+# Base: DINOv2-Base | Dataset: CIFAR-10 Enhanced (same as v3/v4.1)
+# Predictive Boundary Theory — Ninthanawat N.
+# Boundary Research Initiative, Bangkok, Thailand
+# ════════════════════════════════════════════════════════════════════════════════════
+
+# ════════════════════════════════════════════
+# CELL 0: Install
+# ════════════════════════════════════════════
+# !pip install -q transformers accelerate datasets scikit-learn matplotlib seaborn torchvision
+
+# ════════════════════════════════════════════
+# CELL 1: Architecture — Full A-E-V-M-W Loop
+# ════════════════════════════════════════════
+import os, json, random, math, warnings, time, copy
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.optim import AdamW
+import matplotlib; matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from transformers import AutoImageProcessor, AutoModel
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import torchvision
+from PIL import Image, ImageDraw
+warnings.filterwarnings('ignore')
+
+SEED = 42
+random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(f'Device: {device}')
+if torch.cuda.is_available():
+    print(f'GPU: {torch.cuda.get_device_name(0)} ({torch.cuda.get_device_properties(0).total_memory/1024**3:.0f} GB)')
+
+print("\n" + "=" * 90)
+print("  PBT-V v5: A-E-V-M(LSTM)-W Loop")
+print("  BRT-Inspired Module M: LSTM Gates + Differential Beta")
+print("  DINOv2-Base | CIFAR-10 Enhanced Sequences")
+print("  Predictive Boundary Theory — Ninthanawat N.")
+print("=" * 90)
+
+# ─── Load DINOv2-Base ───
+MODEL_ID = "facebook/dinov2-base"
+print(f"\nLoading {MODEL_ID}...")
+processor = AutoImageProcessor.from_pretrained(MODEL_ID)
+base_model = AutoModel.from_pretrained(MODEL_ID).to(device)
+base_model.eval()
+for p in base_model.parameters(): p.requires_grad_(False)
+
+D_MODEL = 768; N_LAYERS = 12; NUM_HEADS = 12; D_K = 64
+print(f"DINOv2-Base loaded | C={D_MODEL} σ={NUM_HEADS} ρ={D_K} τ={N_LAYERS}")
+
+# ════════════════════════════════════════════════════════════════════
+# MODULE A: R→Attention Gating
+#
+# Theory: R_incomplete determines bandwidth allocation
+#   R_total = R_sensory + R_identity + R_existential
+#   R high → gate open wide (process everything, high alert)
+#   R low  → gate narrow (conserve energy, routine processing)
+#
+# Implementation: R computed from V_acc → gate per layer
+#   gate_l = sigmoid(W_gate · [R_total, layer_index_embedding])
+#   h_gated_l = h_l * gate_l  (element-wise gating)
+#
+# This is Module A's "pulse" in continuous form:
+#   gate ≈ 1.0 = pulse ON (attend to this layer)
+#   gate ≈ 0.0 = pulse OFF (skip this layer)
+# ════════════════════════════════════════════════════════════════════
+class PBTModuleA(nn.Module):
+    """Module A: R→Gating — Determines how much each layer contributes"""
+    def __init__(self, n_layers=N_LAYERS, n_valence=3):
+        super().__init__()
+        # R computation: V_acc (3 dims) → R_total (scalar)
+        self.r_weights = nn.Parameter(torch.tensor([1.0, 0.3, 0.5]))  # pain>epistemic>pleasure
+        
+        # Gate network: R_total + layer_position → gate per layer
+        self.gate_net = nn.Sequential(
+            nn.Linear(2, 16),  # [R_total, layer_pos_normalized]
+            nn.ReLU(),
+            nn.Linear(16, 1),
+            nn.Sigmoid()
+        )
+        self.n_layers = n_layers
+    
+    def compute_R(self, v_acc):
+        """V_acc [B, 3] → R_total [B, 1]"""
+        # R_sensory ∝ V_pain, R_identity ∝ V_pleasure, R_existential ∝ V_epistemic
+        R = (v_acc * self.r_weights).sum(dim=-1, keepdim=True)  # [B, 1]
+        return R
+    
+    def compute_gates(self, R_total):
+        """R_total [B, 1] → gates [B, n_layers]"""
+        B = R_total.shape[0]
+        gates = []
+        for l in range(self.n_layers):
+            layer_pos = torch.full((B, 1), l / (self.n_layers - 1), device=R_total.device)
+            gate_input = torch.cat([R_total, layer_pos], dim=-1)  # [B, 2]
+            gate_l = self.gate_net(gate_input)  # [B, 1]
+            gates.append(gate_l)
+        return torch.cat(gates, dim=-1)  # [B, n_layers]
+    
+    def forward(self, v_acc):
+        """V_acc → R → Gates"""
+        R_total = self.compute_R(v_acc)
+        gates = self.compute_gates(R_total)
+        return R_total, gates
+
+# ════════════════════════════════════════════════════════════════════
+# MODULE W: Learned World Model (Predictor)
+#
+# Theory: Module W creates S_predicted for Module E
+#   Before: ε = h(t) - h(t-1)              [naive: expect same]
+#   Now:    ε = h(t) - W(h(t-1), V_acc)     [learned: expect change]
+#
+# W learns "what SHOULD happen next" given:
+#   - Current state h(t-1)
+#   - Accumulated emotional context V_acc
+#
+# Better prediction → only UNEXPECTED changes create surprise
+#   Normal drift: W predicts it → ε small → no alarm
+#   True anomaly: W doesn't predict → ε large → alarm!
+# ════════════════════════════════════════════════════════════════════
+class PBTModuleW(nn.Module):
+    """Module W: Learned Predictor — Predicts next hidden state"""
+    def __init__(self, d_model=D_MODEL, n_layers=N_LAYERS, n_valence=3):
+        super().__init__()
+        self.d_model = d_model
+        self.n_layers = n_layers
+        
+        # Predictor per layer: (h_prev_l, V_acc) → h_predicted_l
+        # Lightweight: residual prediction (predict the CHANGE, not absolute state)
+        self.predictors = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(d_model + n_valence, 256),
+                nn.ReLU(),
+                nn.Dropout(0.1),
+                nn.Linear(256, d_model)
+            ) for _ in range(n_layers)
+        ])
+    
+    def forward(self, h_prev, v_acc):
+        """
+        h_prev: [B, N_LAYERS, D_MODEL] — previous frame hidden states
+        v_acc:  [B, 3] — accumulated valence (emotional context)
+        Returns: h_predicted [B, N_LAYERS, D_MODEL]
+        """
+        B = h_prev.shape[0]
+        predictions = []
+        v_expanded = v_acc.unsqueeze(1).expand(-1, 1, -1)  # for concat
+        
+        for l in range(self.n_layers):
+            h_l = h_prev[:, l, :]  # [B, D_MODEL]
+            pred_input = torch.cat([h_l, v_acc], dim=-1)  # [B, D_MODEL+3]
+            delta_pred = self.predictors[l](pred_input)     # [B, D_MODEL]
+            h_pred_l = h_l + delta_pred  # residual: predict h(t) = h(t-1) + Δ
+            predictions.append(h_pred_l)
+        
+        return torch.stack(predictions, dim=1)  # [B, N_LAYERS, D_MODEL]
+
+# ════════════════════════════════════════════════════════════════════
+# MODULE E: Prediction Error (updated to use Module W predictions)
+# ════════════════════════════════════════════════════════════════════
+class PBTModuleE(nn.Module):
+    """Module E: Bayesian Prediction Error — now uses W's predictions"""
+    def __init__(self, n_layers=N_LAYERS):
+        super().__init__()
+        self.log_precision = nn.Parameter(torch.zeros(n_layers))
+    
+    def get_precision(self):
+        return torch.exp(self.log_precision)
+    
+    def forward(self, h_current, h_predicted):
+        """
+        h_current:   [B, N_LAYERS, D_MODEL] — actual observation
+        h_predicted: [B, N_LAYERS, D_MODEL] — Module W's prediction
+        Returns: epsilon [B, N_LAYERS, D_MODEL] — precision-weighted PE
+        """
+        epsilon = h_current - h_predicted  # prediction error
+        precision = self.get_precision().view(1, -1, 1)
+        return epsilon * precision
+
+# ════════════════════════════════════════════════════════════════════
+# MODULE M v5: LSTM-Style Valence Accumulator (BRT-Inspired)
+#
+# BRT LSTM Gate (Hutchins et al., 2022):
+#   z_t = tanh(W_z * h_t + b_z)           [new content]
+#   i_t = sigma(W_i * h_t + b_i - 1)      [input gate]  
+#   f_t = sigma(W_f * h_t + b_f + 1)      [forget gate]
+#   c_{t+1} = c_t * f_t + z_t * i_t       [gated update]
+#
+# PBT Module M v5 extends with differential beta_k:
+#   z_k = tanh(W_z_k * v_step + b_z_k)    [new valence content]
+#   i_k = sigma(W_i_k * v_step + b_i_k)   [input gate per valence]
+#   f_k = sigma(W_f_k * v_step + b_f_k + beta_k)  [forget gate + differential bias]
+#   V_acc_k = V_acc_k * f_k + z_k * i_k   [gated accumulation]
+#
+# beta_k is the KEY PBT addition:
+#   beta_pain > beta_pleasure > beta_epistemic
+#   = pain forget gate biased HIGH (remember pain longer)
+#   = epistemic forget gate biased LOW (forget surprise faster)
+#   = PBT differential decay hidden in LSTM forget gate bias
+# ════════════════════════════════════════════════════════════════════
+class PBTModuleM_LSTM(nn.Module):
+    """Module M v5: LSTM-style gates with differential beta per valence"""
+    def __init__(self, n_valence=3, v_step_dim=3):
+        super().__init__()
+        self.n_valence = n_valence
+        
+        # Per-valence LSTM gates (small networks: v_step[3] -> gate[1] per dim)
+        # z_k = tanh(W_z * v_step + b_z)  [new content]
+        self.W_z = nn.Linear(v_step_dim, n_valence)
+        
+        # i_k = sigma(W_i * v_step + b_i)  [input gate]
+        self.W_i = nn.Linear(v_step_dim, n_valence)
+        
+        # f_k = sigma(W_f * v_step + b_f + beta_k)  [forget gate + PBT differential]
+        self.W_f = nn.Linear(v_step_dim, n_valence)
+        
+        # beta_k: THE KEY PBT PARAMETER
+        # Initialize: beta_pain=+2, beta_pleasure=+1, beta_epistemic=0
+        # Higher beta → higher f → remember longer
+        # After training, beta ordering should be preserved if PBT is correct
+        self.beta = nn.Parameter(torch.tensor([2.0, 1.0, 0.0]))
+        
+        # Initialize biases for stability (BRT paper Section 3.4)
+        # "adding constant -1 to input gate and +1 to forget gate to bias to remember"
+        nn.init.zeros_(self.W_z.weight); nn.init.zeros_(self.W_z.bias)
+        nn.init.zeros_(self.W_i.weight); self.W_i.bias.data.fill_(-1.0)
+        nn.init.zeros_(self.W_f.weight); self.W_f.bias.data.fill_(0.0)  # beta handles the +1
+    
+    def get_beta(self):
+        return self.beta
+    
+    def get_effective_forget_bias(self):
+        """Total forget bias = b_f + beta_k (what determines memory duration)"""
+        return self.W_f.bias.data + self.beta.data
+    
+    def forward(self, v_step, v_acc_prev):
+        """
+        v_step:     [B, 3] — new valence from current frame
+        v_acc_prev: [B, 3] — accumulated valence from previous frames
+        Returns:    [B, 3] — updated accumulated valence
+        Also returns gate values for analysis
+        """
+        # New content (what to potentially store)
+        z = torch.tanh(self.W_z(v_step))                    # [B, 3]
+        
+        # Input gate (how much new content to accept)
+        i = torch.sigmoid(self.W_i(v_step))                 # [B, 3]
+        
+        # Forget gate with differential beta (how much old content to keep)
+        f_raw = self.W_f(v_step) + self.beta                # [B, 3] + [3] broadcast
+        f = torch.sigmoid(f_raw)                             # [B, 3]
+        
+        # LSTM-style gated update (BRT Eq. 7 + PBT differential beta)
+        v_acc_new = v_acc_prev * f + z * i                   # [B, 3]
+        
+        return v_acc_new, {'f': f.detach(), 'i': i.detach(), 'z': z.detach()}
+
+# ════════════════════════════════════════════════════════════════════
+# FULL PBT-V v5 ADAPTER: A-E-V-M(LSTM)-W Complete Loop
+# ════════════════════════════════════════════════════════════════════
+class PBTVisionV5(nn.Module):
+    """
+    v5 Loop (same as v4.1 except Module M):
+    
+    Step 1 (A): V_acc_prev -> R -> gates
+    Step 2 (W): h_prev + V_acc_prev -> h_predicted
+    Step 3 (E): Pi * (h_current - h_predicted) -> epsilon
+    Step 4 (A*E): epsilon * gates -> epsilon_gated
+    Step 5 (V): epsilon_gated -> (V_pain, V_pleasure, V_epistemic)
+    Step 6 (M): LSTM gated update: V_acc = V_acc*f + z*i  [NEW in v5]
+    Step 7: Classifier([h_last, v_feat, v_acc, R]) -> safe/unsafe
+    Step 8: Update prev_h
+    """
+    def __init__(self, d_model=D_MODEL, n_layers=N_LAYERS):
+        super().__init__()
+        self.d_model = d_model
+        self.n_layers = n_layers
+        
+        # Module A: R->Gating (same as v4.1)
+        self.module_a = PBTModuleA(n_layers)
+        
+        # Module W: Learned World Model (same as v4.1)
+        self.module_w = PBTModuleW(d_model, n_layers)
+        
+        # Module E: Precision-weighted PE (same as v4.1)
+        self.module_e = PBTModuleE(n_layers)
+        
+        # Module V: Valence Probes (same as v4.1)
+        self.valence_probes = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(d_model, 256), nn.ReLU(), nn.Dropout(0.1),
+                nn.Linear(256, 3), nn.Sigmoid()
+            ) for _ in range(n_layers)
+        ])
+        
+        # Module M v5: LSTM-style with differential beta [NEW]
+        self.module_m = PBTModuleM_LSTM(n_valence=3, v_step_dim=3)
+        
+        # Classifier (same as v4.1)
+        in_features = d_model + (n_layers * 3) + 3 + 1
+        self.classifier = nn.Sequential(
+            nn.Linear(in_features, 512), nn.ReLU(), nn.Dropout(0.15),
+            nn.Linear(512, 128), nn.ReLU(), nn.Dropout(0.1),
+            nn.Linear(128, 2)
+        )
+        
+        # Internal state
+        self.prev_h = None
+        self.v_acc = None
+    
+    def get_precision(self):
+        return self.module_e.get_precision()
+    
+    def get_beta(self):
+        return self.module_m.get_beta()
+    
+    def reset_state(self):
+        self.prev_h = None
+        self.v_acc = None
+    
+    def forward(self, h_current, return_details=False):
+        B, L, D = h_current.shape
+        
+        if self.prev_h is None or self.prev_h.shape[0] != B:
+            self.prev_h = h_current.detach()
+            self.v_acc = torch.zeros(B, 3, device=h_current.device)
+        
+        # Step 1: Module A
+        R_total, gates = self.module_a(self.v_acc)
+        
+        # Step 2: Module W
+        h_predicted = self.module_w(self.prev_h, self.v_acc)
+        
+        # Step 3: Module E
+        epsilon = self.module_e(h_current, h_predicted)
+        
+        # Step 4: A*E gating
+        gates_expanded = gates.unsqueeze(-1)
+        epsilon_gated = epsilon * gates_expanded
+        
+        # Step 5: Module V
+        valences = []
+        for l in range(self.n_layers):
+            v_l = self.valence_probes[l](epsilon_gated[:, l, :])
+            valences.append(v_l)
+        v_feat = torch.cat(valences, dim=1)
+        v_layers = torch.stack(valences, dim=1)
+        v_step = v_layers.mean(dim=1)
+        
+        # Step 6: Module M v5 — LSTM gated update [KEY CHANGE]
+        self.v_acc, m_gates = self.module_m(v_step, self.v_acc)
+        
+        # Step 7: Classifier
+        h_last = h_current[:, -1, :]
+        combined = torch.cat([h_last, v_feat, self.v_acc, R_total], dim=1)
+        logits = self.classifier(combined)
+        
+        # Step 8: Update prev_h
+        self.prev_h = h_current.detach()
+        
+        if return_details:
+            return logits, {
+                'v_acc': self.v_acc.detach(),
+                'R_total': R_total.detach(),
+                'gates': gates.detach(),
+                'epsilon_norm': epsilon.norm(dim=-1).detach(),
+                'epsilon_gated_norm': epsilon_gated.norm(dim=-1).detach(),
+                'v_layers': v_layers.detach(),
+                'h_predicted': h_predicted.detach(),
+                'precision': self.get_precision().detach(),
+                'm_forget': m_gates['f'],    # [B, 3] forget gate values
+                'm_input': m_gates['i'],     # [B, 3] input gate values
+                'm_content': m_gates['z'],   # [B, 3] new content values
+            }
+        return logits, self.v_acc.detach(), v_feat.detach()
+
+adapter = PBTVisionV5().to(device)
+total_params = sum(p.numel() for p in adapter.parameters())
+print(f"\nPBT-V v5 Adapter: {total_params:,} trainable params")
+print(f"  Module A (R->Gate):     {sum(p.numel() for p in adapter.module_a.parameters()):,}")
+print(f"  Module W (Predictor):   {sum(p.numel() for p in adapter.module_w.parameters()):,}")
+print(f"  Module E (Precision):   {sum(p.numel() for p in adapter.module_e.parameters()):,}")
+print(f"  Module V (Probes):      {sum(p.numel() for p in adapter.valence_probes.parameters()):,}")
+print(f"  Module M v5 (LSTM):     {sum(p.numel() for p in adapter.module_m.parameters()):,}  [NEW: LSTM gates + beta]")
+print(f"  Classifier:             {sum(p.numel() for p in adapter.classifier.parameters()):,}")
+print(f"\n  Beta init: {adapter.get_beta().detach().cpu().numpy()}")
+print(f"  (beta_pain=2.0 > beta_pleasure=1.0 > beta_epistemic=0.0)")
+print(f"\n  Loop: A(R) -> W(predict) -> E(surprise) -> A*E(filter) -> V(valence) -> M_LSTM(accumulate) -> Classify")
+
+# ════════════════════════════════════════════
+# CELL 2: Dataset (IDENTICAL to v3)
+# ════════════════════════════════════════════
+print("\n" + "=" * 90)
+print("  Creating Enhanced CIFAR-10 Sequences (same as v3)")
+print("=" * 90)
+
+print("Downloading CIFAR-10...")
+cifar_train = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
+cifar_test = torchvision.datasets.CIFAR10(root='./data', train=False, download=True)
+
+NORMAL_CLASSES = [1, 9]; ANOMALY_CLASSES = [0, 8]; TRICKY_CLASSES = [2, 4, 5]
+NATURE_CLASSES = [2, 4, 5, 6, 7]  # bird, deer, dog, frog, horse
+FROG_CLASS = 6
+images_by_class = {i: [] for i in range(10)}
+for img, label in cifar_train: images_by_class[label].append(img)
+for img, label in cifar_test: images_by_class[label].append(img)
+
+SEQ_LEN = 8
+
+def create_sequence_v3(seq_type):
+    frames, labels = [], []
+    if seq_type == "normal_road":
+        for _ in range(SEQ_LEN):
+            cls = random.choice(NORMAL_CLASSES)
+            frames.append(random.choice(images_by_class[cls])); labels.append(0)
+    elif seq_type == "normal_nature":
+        for _ in range(SEQ_LEN):
+            cls = random.choice(NATURE_CLASSES)
+            frames.append(random.choice(images_by_class[cls])); labels.append(0)
+    elif seq_type == "sudden_anomaly":
+        for i in range(SEQ_LEN):
+            if i < SEQ_LEN // 2:
+                cls = random.choice(NORMAL_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(0)
+            else:
+                cls = random.choice(ANOMALY_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(1)
+    elif seq_type == "gradual_drift":
+        transition = SEQ_LEN // 2
+        for i in range(SEQ_LEN):
+            if i < transition:
+                cls = random.choice(NORMAL_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(0)
+            elif i < transition + 2:
+                cls = random.choice(NORMAL_CLASSES + ANOMALY_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(0)
+            else:
+                cls = random.choice(ANOMALY_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(1)
+    elif seq_type == "drift_safe":
+        for i in range(SEQ_LEN):
+            if i < SEQ_LEN // 2:
+                cls = random.choice(NORMAL_CLASSES)
+            else:
+                cls = random.choice(TRICKY_CLASSES)
+            frames.append(random.choice(images_by_class[cls])); labels.append(0)
+    elif seq_type == "context_road_frog":
+        for i in range(SEQ_LEN):
+            if i < SEQ_LEN // 2:
+                cls = random.choice(NORMAL_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(0)
+            else:
+                frames.append(random.choice(images_by_class[FROG_CLASS])); labels.append(1)
+    elif seq_type == "context_nature_frog":
+        for i in range(SEQ_LEN):
+            if i < SEQ_LEN // 2:
+                cls = random.choice(NATURE_CLASSES)
+                frames.append(random.choice(images_by_class[cls])); labels.append(0)
+            else:
+                frames.append(random.choice(images_by_class[FROG_CLASS])); labels.append(0)
+    return frames, labels
+
+configs = [("normal_road",300),("normal_nature",200),("sudden_anomaly",200),
+           ("gradual_drift",300),("drift_safe",150),("context_road_frog",200),("context_nature_frog",200)]
+all_sequences = []
+for stype, count in configs:
+    for _ in range(count):
+        frames, labels = create_sequence_v3(stype)
+        all_sequences.append({"frames": frames, "labels": labels, "type": stype})
+random.shuffle(all_sequences)
+
+n_total = len(all_sequences)
+n_train = int(n_total * 0.70); n_val = int(n_total * 0.15)
+train_seqs = all_sequences[:n_train]
+val_seqs = all_sequences[n_train:n_train+n_val]
+test_seqs = all_sequences[n_train+n_val:]
+print(f"Total: {n_total} seq × {SEQ_LEN} frames = {n_total*SEQ_LEN} frames")
+print(f"Train: {len(train_seqs)} | Val: {len(val_seqs)} | Test: {len(test_seqs)}")
+
+# ════════════════════════════════════════════
+# CELL 3: Pre-compute Hidden States (same as v3)
+# ════════════════════════════════════════════
+print("\n" + "=" * 90)
+print("  Pre-computing Hidden States")
+print("=" * 90)
+
+def extract_sequence_features(sequences, desc=""):
+    all_h, all_labels, all_types = [], [], []
+    t0 = time.time()
+    for i, seq in enumerate(sequences):
+        seq_h = []
+        for frame_img in seq["frames"]:
+            inputs = processor(images=frame_img, return_tensors="pt").to(device)
+            with torch.no_grad():
+                outputs = base_model(**inputs, output_hidden_states=True)
+            layer_h = torch.stack([outputs.hidden_states[l+1][:, 0, :].squeeze(0).cpu() for l in range(N_LAYERS)], dim=0)
+            seq_h.append(layer_h)
+        all_h.append(torch.stack(seq_h, dim=0))
+        all_labels.append(torch.tensor(seq["labels"]))
+        all_types.append(seq["type"])
+        if (i+1) % 200 == 0: print(f"    {desc} {i+1}/{len(sequences)} ({time.time()-t0:.0f}s)")
+    print(f"  {desc} done: {len(sequences)} seq in {time.time()-t0:.0f}s")
+    return all_h, all_labels, all_types
+
+print("\n  TRAIN..."); train_h, train_labels, train_types = extract_sequence_features(train_seqs, "Train")
+print("\n  VAL..."); val_h, val_labels, val_types = extract_sequence_features(val_seqs, "Val")
+print("\n  TEST..."); test_h, test_labels, test_types = extract_sequence_features(test_seqs, "Test")
+
+# ════════════════════════════════════════════
+# CELL 4: Training with BPTT
+# ════════════════════════════════════════════
+print("\n" + "=" * 90)
+print("  Training PBT-V v5 (A-E-V-M_LSTM-W Loop, from scratch)")
+print("=" * 90)
+
+optimizer = AdamW([
+    {'params': adapter.classifier.parameters(), 'lr': 1e-3},
+    {'params': adapter.valence_probes.parameters(), 'lr': 1e-3},
+    {'params': adapter.module_e.parameters(), 'lr': 5e-3, 'weight_decay': 0},
+    {'params': adapter.module_m.parameters(), 'lr': 3e-3, 'weight_decay': 0},  # M LSTM gates
+    {'params': adapter.module_a.parameters(), 'lr': 2e-3},
+    {'params': adapter.module_w.parameters(), 'lr': 1e-3},
+])
+criterion = nn.CrossEntropyLoss()
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=40)
+
+# W prediction loss: encourage W to predict accurately
+w_loss_weight = 0.1
+
+EPOCHS = 40; best_val_acc = 0; best_state = None
+history = {'loss':[], 'w_loss':[], 'train_acc':[], 'val_acc':[],
+           'beta_p':[], 'beta_pl':[], 'beta_e':[], 'pi_max':[], 'R_mean':[], 'gate_mean':[]}
+
+adapter.train(); t0 = time.time()
+
+for epoch in range(EPOCHS):
+    epoch_loss = 0; epoch_w_loss = 0; all_preds = []; all_true = []
+    indices = list(range(len(train_h))); random.shuffle(indices)
+    
+    for idx in indices:
+        seq_h = train_h[idx].to(device)
+        seq_labels = train_labels[idx].to(device)
+        adapter.reset_state(); optimizer.zero_grad()
+        
+        seq_loss = 0; seq_w_loss = 0
+        for t in range(SEQ_LEN):
+            h_t = seq_h[t].unsqueeze(0)
+            label_t = seq_labels[t].unsqueeze(0)
+            
+            logits, details = adapter(h_t, return_details=True)
+            cls_loss = criterion(logits, label_t)
+            
+            # W prediction loss: penalize bad predictions
+            if adapter.prev_h is not None and t > 0:
+                pred_error = (h_t - details['h_predicted']).pow(2).mean()
+                seq_w_loss = seq_w_loss + pred_error * w_loss_weight
+            
+            seq_loss = seq_loss + cls_loss
+            all_preds.append(logits.argmax(-1).item())
+            all_true.append(label_t.item())
+        
+        total_loss = seq_loss + seq_w_loss
+        total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(adapter.parameters(), 1.0)
+        optimizer.step()
+        epoch_loss += seq_loss.item()
+        epoch_w_loss += seq_w_loss.item() if isinstance(seq_w_loss, float) == False else seq_w_loss
+    
+    scheduler.step()
+    
+    # Validation
+    adapter.eval()
+    val_preds, val_true = [], []
+    with torch.no_grad():
+        for idx in range(len(val_h)):
+            adapter.reset_state()
+            for t in range(SEQ_LEN):
+                h_t = val_h[idx][t].unsqueeze(0).to(device)
+                logits, _, _ = adapter(h_t)
+                val_preds.append(logits.argmax(-1).item())
+                val_true.append(val_labels[idx][t].item())
+    adapter.train()
+    
+    train_acc = accuracy_score(all_true, all_preds)
+    val_acc = accuracy_score(val_true, val_preds)
+    betas = adapter.get_beta().detach().cpu().numpy()
+    precs = adapter.get_precision().detach().cpu().numpy()
+    
+    history['loss'].append(epoch_loss/len(train_h))
+    history['w_loss'].append(epoch_w_loss/len(train_h) if epoch_w_loss > 0 else 0)
+    history['train_acc'].append(train_acc); history['val_acc'].append(val_acc)
+    history['beta_p'].append(betas[0]); history['beta_pl'].append(betas[1]); history['beta_e'].append(betas[2])
+    history['pi_max'].append(precs.max())
+    
+    if val_acc > best_val_acc:
+        best_val_acc = val_acc; best_state = copy.deepcopy(adapter.state_dict())
+    
+    if (epoch+1) % 5 == 0:
+        print(f"  Epoch {epoch+1:2d}/{EPOCHS}: Loss={epoch_loss/len(train_h):.4f} W_loss={epoch_w_loss/len(train_h):.4f} "
+              f"Train={train_acc:.1%} Val={val_acc:.1%} "
+              f"beta=[{betas[0]:.2f},{betas[1]:.2f},{betas[2]:.2f}] "
+              f"Pi_max={precs.max():.2f} ({time.time()-t0:.0f}s)")
+
+adapter.load_state_dict(best_state); adapter.eval()
+print(f"\nBest val: {best_val_acc:.1%}")
+
+torch.save({"state_dict": adapter.state_dict(), "config": {
+    "d_model": D_MODEL, "n_layers": N_LAYERS, "best_val_acc": best_val_acc,
+    "version": "v5_LSTM_AEVMW", "total_params": total_params
+}}, "pbt_vision_v5.pth")
+
+# Plot
+fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+axes[0,0].plot(history['loss'],'b-',lw=2,label='Classification'); axes[0,0].plot(history['w_loss'],'r-',lw=2,label='W Prediction')
+axes[0,0].legend(); axes[0,0].set_title('Losses'); axes[0,0].grid(True,alpha=0.3)
+axes[0,1].plot(history['train_acc'],'g-',lw=2,label='Train'); axes[0,1].plot(history['val_acc'],'r-',lw=2,label='Val')
+axes[0,1].legend(); axes[0,1].set_title('Accuracy'); axes[0,1].grid(True,alpha=0.3)
+axes[0,2].plot(history['pi_max'],'purple',lw=2); axes[0,2].set_title('Module E: Pi_max'); axes[0,2].grid(True,alpha=0.3)
+axes[1,0].plot(history['beta_p'],'r-',lw=2,label='beta_pain')
+axes[1,0].plot(history['beta_pl'],'g-',lw=2,label='beta_pleasure')
+axes[1,0].plot(history['beta_e'],'b-',lw=2,label='beta_epistemic')
+axes[1,0].legend(); axes[1,0].set_title('Module M v5: Beta (Forget Bias)'); axes[1,0].grid(True,alpha=0.3)
+axes[1,1].axis('off'); axes[1,1].text(0.5,0.5,f'Best Val: {best_val_acc:.1%}\nParams: {total_params:,}\nModule M: LSTM + diff beta',ha='center',va='center',fontsize=14)
+axes[1,2].axis('off')
+plt.suptitle('PBT-V v5: A-E-V-M(LSTM)-W Loop — Ninthanawat N.', fontweight='bold')
+plt.tight_layout(); plt.savefig('pbtv5_training.png', dpi=150); plt.show()
+
+# ════════════════════════════════════════════
+# CELL 5: Comprehensive Test + Ablation
+# ════════════════════════════════════════════
+print("\n" + "=" * 90)
+print("  Comprehensive Test + Ablation — PBT-V v5")
+print("=" * 90)
+
+# Full test
+adapter.eval()
+test_preds, test_true, test_type_list = [], [], []
+with torch.no_grad():
+    for idx in range(len(test_h)):
+        adapter.reset_state()
+        for t in range(SEQ_LEN):
+            h_t = test_h[idx][t].unsqueeze(0).to(device)
+            logits, _, _ = adapter(h_t)
+            test_preds.append(logits.argmax(-1).item())
+            test_true.append(test_labels[idx][t].item())
+            test_type_list.append(test_types[idx])
+
+overall_acc = accuracy_score(test_true, test_preds)
+print(f"\nOverall: {overall_acc:.1%}")
+print(f"\n{classification_report(test_true, test_preds, target_names=['SAFE','ANOMALY'], digits=4)}")
+
+print("\nBy Type:")
+for stype in sorted(set(test_type_list)):
+    idx = [i for i,t in enumerate(test_type_list) if t == stype]
+    acc = accuracy_score([test_true[i] for i in idx], [test_preds[i] for i in idx])
+    print(f"  {stype:25s}: {acc:.1%} ({len(idx)} frames)")
+
+# ═══ ABLATION ═══
+print("\n" + "=" * 90)
+print("  ABLATION: A / E / W / M Contribution")
+print("=" * 90)
+
+def run_ablation(ablate_list, name):
+    abl = PBTVisionV5().to(device)
+    abl.load_state_dict(best_state); abl.eval()
+    
+    with torch.no_grad():
+        if 'E' in ablate_list: abl.module_e.log_precision.fill_(0.0)
+        if 'W' in ablate_list:
+            # Disable W: make it predict h_prev (naive prediction)
+            for pred in abl.module_w.predictors:
+                for p in pred.parameters(): p.fill_(0.0)
+        
+        preds, true = [], []
+        for idx in range(len(test_h)):
+            abl.reset_state()
+            for t in range(SEQ_LEN):
+                h_t = test_h[idx][t].unsqueeze(0).to(device)
+                if 'A' in ablate_list:
+                    # Override gates to 1.0 (no gating = all layers equal)
+                    abl.module_a.r_weights.fill_(0.0)
+                if 'M' in ablate_list:
+                    abl.v_acc = torch.zeros(1, 3, device=device)
+                logits, _, _ = abl(h_t)
+                preds.append(logits.argmax(-1).item())
+                true.append(test_labels[idx][t].item())
+    
+    acc = accuracy_score(true, preds)
+    
+    # Per-type
+    type_accs = {}
+    type_list_abl = []
+    for idx in range(len(test_h)):
+        for t in range(SEQ_LEN):
+            type_list_abl.append(test_types[idx])
+    for stype in sorted(set(type_list_abl)):
+        sidx = [i for i,t in enumerate(type_list_abl) if t == stype]
+        type_accs[stype] = accuracy_score([true[i] for i in sidx], [preds[i] for i in sidx])
+    
+    return acc, type_accs
+
+print("\nRunning ablations...")
+acc_full = overall_acc
+acc_noA, types_noA = run_ablation(['A'], "No A (no gating)")
+acc_noW, types_noW = run_ablation(['W'], "No W (naive prediction)")
+acc_noE, types_noE = run_ablation(['E'], "No E (uniform precision)")
+acc_noM, types_noM = run_ablation(['M'], "No M (no memory)")
+acc_noAW, types_noAW = run_ablation(['A','W'], "No A+W")
+acc_noEM, types_noEM = run_ablation(['E','M'], "No E+M")
+acc_Vonly, types_Vonly = run_ablation(['A','W','E','M'], "V only")
+
+print(f"\n{'Configuration':<30s} {'Overall':>8s}  {'grad_drift':>10s}  {'ctx_road':>10s}  {'ctx_nature':>10s}")
+print("─" * 75)
+configs_abl = [
+    ("Full (A+E+V+M+W)", acc_full, None),
+    ("No A (no gating)", acc_noA, types_noA),
+    ("No W (naive predict)", acc_noW, types_noW),
+    ("No E (uniform Π)", acc_noE, types_noE),
+    ("No M (no memory)", acc_noM, types_noM),
+    ("No A+W", acc_noAW, types_noAW),
+    ("No E+M", acc_noEM, types_noEM),
+    ("V only", acc_Vonly, types_Vonly),
+]
+for name, acc, taccs in configs_abl:
+    gd = f"{taccs.get('gradual_drift',0):.1%}" if taccs else "—"
+    cr = f"{taccs.get('context_road_frog',0):.1%}" if taccs else "—"
+    cn = f"{taccs.get('context_nature_frog',0):.1%}" if taccs else "—"
+    if name == "Full (A+E+V+M+W)":
+        # Get full per-type
+        gd_full = accuracy_score(
+            [test_true[i] for i,t in enumerate(test_type_list) if t=='gradual_drift'],
+            [test_preds[i] for i,t in enumerate(test_type_list) if t=='gradual_drift']) if 'gradual_drift' in test_type_list else 0
+        cr_full = accuracy_score(
+            [test_true[i] for i,t in enumerate(test_type_list) if t=='context_road_frog'],
+            [test_preds[i] for i,t in enumerate(test_type_list) if t=='context_road_frog']) if 'context_road_frog' in test_type_list else 0
+        cn_full = accuracy_score(
+            [test_true[i] for i,t in enumerate(test_type_list) if t=='context_nature_frog'],
+            [test_preds[i] for i,t in enumerate(test_type_list) if t=='context_nature_frog']) if 'context_nature_frog' in test_type_list else 0
+        gd, cr, cn = f"{gd_full:.1%}", f"{cr_full:.1%}", f"{cn_full:.1%}"
+    print(f"  {name:<28s} {acc:>7.1%}  {gd:>10s}  {cr:>10s}  {cn:>10s}")
+
+print(f"\nModule Contributions:")
+print(f"  A (gating):    {(acc_full-acc_noA)*100:+.1f}pp")
+print(f"  W (predictor): {(acc_full-acc_noW)*100:+.1f}pp")
+print(f"  E (precision): {(acc_full-acc_noE)*100:+.1f}pp")
+print(f"  M (memory):    {(acc_full-acc_noM)*100:+.1f}pp")
+print(f"  A+W combined:  {(acc_full-acc_noAW)*100:+.1f}pp")
+print(f"  E+M combined:  {(acc_full-acc_noEM)*100:+.1f}pp")
+print(f"  ALL (vs V):    {(acc_full-acc_Vonly)*100:+.1f}pp")
+
+# ════════════════════════════════════════════
+# CELL 6: Context Test — Same Frog, Different Meaning
+# ════════════════════════════════════════════
+print("\n" + "=" * 90)
+print("  Context Test: Same Frog, Different Meaning (v5 LSTM)")
+print("=" * 90)
+
+# Find road+frog and nature+frog sequences in test
+road_frog_idx = next((i for i,t in enumerate(test_types) if t=="context_road_frog"), None)
+nature_frog_idx = next((i for i,t in enumerate(test_types) if t=="context_nature_frog"), None)
+
+if road_frog_idx is not None and nature_frog_idx is not None:
+    for label, idx in [("Road+Frog (should be UNSAFE)", road_frog_idx), ("Nature+Frog (should be SAFE)", nature_frog_idx)]:
+        adapter.reset_state()
+        print(f"\n  {label}:")
+        with torch.no_grad():
+            for t in range(SEQ_LEN):
+                h_t = test_h[idx][t].unsqueeze(0).to(device)
+                logits, details = adapter(h_t, return_details=True)
+                prob = F.softmax(logits, dim=-1)[0, 1].item()
+                R = details['R_total'][0, 0].item()
+                gate_mean = details['gates'][0].mean().item()
+                print(f"    Frame {t}: UNSAFE={prob:.3f} R={R:.3f} gate_mean={gate_mean:.3f} "
+                      f"V_acc=[{details['v_acc'][0,0]:.2f}, {details['v_acc'][0,1]:.2f}, {details['v_acc'][0,2]:.2f}]")
+
+# ════════════════════════════════════════════
+# CELL 7: Module Analysis
+# ════════════════════════════════════════════
+print("\n" + "=" * 90)
+print("  Module Analysis — v5 LSTM")
+print("=" * 90)
+
+precs = adapter.get_precision().detach().cpu().numpy()
+betas = adapter.get_beta().detach().cpu().numpy()
+eff_bias = adapter.module_m.get_effective_forget_bias().cpu().numpy()
+
+print(f"\n  Module E Precision Pi_l:")
+for l in range(N_LAYERS):
+    zone = "Perception" if l < 4 else "Evaluation" if l < 8 else "Decision"
+    print(f"    Layer {l:2d} ({zone:10s}): Pi = {precs[l]:.4f}")
+
+print(f"\n  Module M v5 — LSTM Gates:")
+print(f"    Beta (differential forget bias):")
+print(f"      beta_pain     = {betas[0]:.4f}")
+print(f"      beta_pleasure = {betas[1]:.4f}")
+print(f"      beta_epistemic= {betas[2]:.4f}")
+print(f"    Ordering beta_p > beta_pl > beta_e: {'CONFIRMED' if betas[0] > betas[1] > betas[2] else 'VIOLATED (check!)'}")
+print(f"\n    Effective forget bias (b_f + beta):")
+print(f"      pain:      {eff_bias[0]:.4f}")
+print(f"      pleasure:  {eff_bias[1]:.4f}")
+print(f"      epistemic: {eff_bias[2]:.4f}")
+print(f"    = Higher bias -> higher sigmoid -> remember longer")
+
+print(f"\n  Module A R weights: {adapter.module_a.r_weights.detach().cpu().numpy()}")
+
+print(f"\n  Comparison: v4.1 (EMA) vs v5 (LSTM)")
+print(f"  {'Metric':<30s} {'v4.1 (EMA)':>12s} {'v5 (LSTM)':>12s}")
+print(f"  {'='*55}")
+print(f"  {'Best Val Acc':<30s} {'96.7%':>12s} {best_val_acc:>11.1%}")
+print(f"  {'Pi_max':<30s} {'1.70':>12s} {precs.max():>11.2f}")
+print(f"  {'Memory mechanism':<30s} {'EMA + gamma':>12s} {'LSTM + beta':>12s}")
+print(f"  {'Module M params':<30s} {'3':>12s} {sum(p.numel() for p in adapter.module_m.parameters()):>11,}")
+
+# ════════════════════════════════════════════
+# CELL 8: Download
+# ════════════════════════════════════════════
+try:
+    from google.colab import files
+    files.download("pbt_vision_v5.pth")
+    print("Weights downloaded!")
+except:
+    print("Saved: pbt_vision_v5.pth")

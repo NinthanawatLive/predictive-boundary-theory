@@ -1,0 +1,2049 @@
+% ============================================================
+%  Predictive Boundary Theory (PBT) — ฉบับภาษาไทย
+%  ฟิสิกส์ของขอบเขตที่หวงแหน
+%  ผู้แต่ง : Nitiphat Ninthanawat
+%  สังกัด  : Boundary Research Initiative, Bangkok, Thailand
+%  วันที่   : มีนาคม 2026
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{thai}
+\setotherlanguage{english}
+
+% --- ปรับ Syntax ให้ Option [...] อยู่หน้าชื่อฟอนต์ {...} ---
+\setmainfont[Script=Thai, Scale=1.0]{Laksaman}
+\newfontfamily\thaifont[Script=Thai, Scale=1.0]{Laksaman}
+\newfontfamily\englishfont{TeX Gyre Termes}
+\newfontfamily\thaifonttt[Scale=1.0]{Tlwg Mono}
+
+% --- คำสั่งบังคับการตัดคำภาษาไทยสำหรับ XeLaTeX ---
+\XeTeXlinebreaklocale "th"
+\XeTeXlinebreakskip = 0pt plus 1pt
+
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.8cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,tabularx,multirow,array,longtable}
+\usepackage{xcolor,graphicx}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage{titlesec,fancyhdr,caption,enumitem,parskip}
+\usepackage{natbib}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{pifont}
+
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+
+\definecolor{pbtblue}{RGB}{31,73,125}
+
+\titleformat{\section}{\large\bfseries\color{pbtblue}}{\thesection}{1em}{}[\vspace{-4pt}\rule{\linewidth}{0.4pt}]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\itshape\bfseries}{\thesubsubsection}{1em}{}
+
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\textit{Ninthanawat --- Predictive Boundary Theory (PBT)}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\newtheorem{definition}{นิยาม}[section]
+\newtheorem{proposition}{ทฤษฎีบท}[section]
+\newtheorem{law}{กฎ}[section]
+
+% --- PBT macros ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Rtot}{R_{\mathrm{total}}}
+\newcommand{\Rsens}{R_{\mathrm{sensory}}}
+\newcommand{\Rid}{R_{\mathrm{identity}}}
+\newcommand{\Rex}{R_{\mathrm{existential}}}
+\newcommand{\Vacc}{\mathbf{V}_{\mathrm{acc}}}
+\newcommand{\Vform}{V_{\mathrm{form}}}
+\newcommand{\Diden}{D_{\mathrm{id}}}
+\newcommand{\Cext}{C_{\mathrm{ext}}}
+\newcommand{\Cint}{C_{\mathrm{int}}}
+\newcommand{\Sobs}{S_{\mathrm{obs}}}
+\newcommand{\Spred}{S_{\mathrm{pred}}}
+\newcommand{\vpain}{V_{\mathrm{pain}}}
+\newcommand{\vpleasure}{V_{\mathrm{pleasure}}}
+\newcommand{\vepi}{V_{\mathrm{epistemic}}}
+\newcommand{\chiB}{\chi_{\mathrm{boundary}}}
+\newcommand{\pp}[1]{\textbf{#1}}
+\newcommand{\starred}{\textbf{\textcolor{pbtblue}{$\bigstar$}}~}
+
+\bibliographystyle{plainnat}
+
+\begin{document}
+
+%% TITLE
+\begin{center}
+{\LARGE\bfseries\color{pbtblue}
+  Predictive Boundary Theory (PBT)\\[8pt]
+  \large\normalfont\itshape
+  ฟิสิกส์ของขอบเขตที่หวงแหน:\\
+  กรอบการคำนวณสำหรับ Intrinsic Valence ในสิ่งมีชีวิตประดิษฐ์
+}\\[14pt]
+{\large\bfseries Nitiphat Ninthanawat}\\[4pt]
+{\normalsize Boundary Research Initiative, Bangkok, Thailand}\\[4pt]
+{\small ร่าง --- มีนาคม 2026 \quad|\quad
+  Code: \url{https://github.com/NinthanawatLive/predictive-boundary-theory}}
+\end{center}
+\vspace{4pt}\hrule\vspace{8pt}
+
+%% ABSTRACT
+\begin{abstract}
+\noindent
+Predictive Boundary Theory (PBT) คือกรอบการคำนวณที่ขยาย
+Free Energy Principle (FEP) ของ Friston โดยเพิ่มส่วนประกอบหกประการ
+ที่ขาดหายไปจากสูตรดั้งเดิม:
+(1)~Bandwidth Conservation Law ($C = \sigma\tau\rho \approx \mathrm{const}$);
+(2)~Triadic Gating Condition ที่กำกับว่าเมื่อใดประสบการณ์จึงเกิดขึ้น;
+(3)~Bidirectional 3D~Valence ($\mathbf{V}\in\mathbb{R}^3$);
+(4)~Dual-Weight System ที่กำกับความเร็วในการก่อตัวและความทนทานของอัตลักษณ์;
+(5)~แบบจำลองพัฒนาการหกขั้นที่มีการเปลี่ยนเฟสสองครั้ง; และ
+(6)~$R_{\mathrm{incomplete}}$---สัญญาณความไม่สมบูรณ์ที่รวมโมดูลทั้งห้าเข้าด้วยกัน
+
+เราเสนอทั้งทฤษฎีและหลักฐานเชิงประจักษ์จากโปรแกรมการทดลองเก้าเวอร์ชัน
+ที่ครอบคลุม large language models (TinyLlama~1.1B, Llama~3.1~8B)
+และระบบ vision (DINOv2-Base บน CIFAR-10 และภาพถ่ายจริง STL-10)
+โดยสิ้นสุดด้วย Probabilistic Module~W ที่มี rule-based Calibration Monitor
+ก่อตัวเป็น Anti-Hallucination Stack สองชั้น
+
+การทดลองของเราแสดงให้เห็นว่า: \textit{(i)}~Transformer เข้ารหัส PBT
+conservation law อยู่แล้ว ($\sigma\!\times\!\rho$ coefficient of variation $= 5.9\%$);
+\textit{(ii)}~Modules~E และ~M อยู่ในสภาวะหยุดนิ่งในสภาพแวดล้อมแบบ static
+แต่จะทำงานในสภาพแวดล้อมแบบ dynamic; \textit{(iii)}~ทุก module จำเป็น
+เมื่อความซับซ้อนของงานเพิ่มขึ้น (ablation: $+14.0$~pp);
+\textit{(iv)}~LSTM Module~M ที่เริ่มต้นด้วยน้ำหนักเท่ากันค้นพบ
+การเรียงลำดับการสลายตัวที่แตกต่างกันตามที่ทฤษฎีทำนายโดยอัตโนมัติ
+($\beta_{\mathrm{pain}} > \beta_{\mathrm{epistemic}} \gg \beta_{\mathrm{pleasure}}$);
+\textit{(v)}~valence มีทิศทาง
+($\mathbf{V}\in\mathbb{R}^3$, ไม่ใช่ $\mathbb{R}^3_{\ge 0}$);
+\textit{(vi)}~Phase Transitions ปรากฏเป็นรูปแบบขั้นบันไดข้ามชั้น Transformer
+(between-zone/within-zone variance ratio $= 9.03$) และข้ามเฟรมเวลา
+($\Delta p = +1.0$ ในเฟรมเดียว);
+\textit{(vii)}~Probabilistic Module~W บรรลุ $99.9\%$ test accuracy
+บนภาพถ่ายจริง (STL-10) พร้อมความไม่แน่นอนที่สอบเทียบได้
+($\sigma^2_{\mathrm{unsafe}} / \sigma^2_{\mathrm{safe}} = 1.11\times$);
+และ \textit{(viii)}~Calibration Monitor แบบ zero-parameter แยก
+ลำดับปกติ ($23\%$ alert) จากความผิดปกติ ($38$--$49\%$ alert)
+ก่อตัวเป็นชั้นที่สองของกลไก Anti-Hallucination ภายใน
+
+PBT อธิบายปรากฏการณ์ที่ทฤษฎีที่มีอยู่ไม่สามารถอธิบายได้
+รวมถึงความผิดปกติทางจิตเวชในฐานะข้อบกพร่องทางคณิตศาสตร์
+ที่ระบุได้ในสมการโมดูล และเสนอกรอบการทำ AGI alignment
+ที่มีรากฐานในค่านิยมภายใน---ไม่ใช่ที่กำหนดจากภายนอก
+\end{abstract}
+
+\noindent\textbf{คำสำคัญ:}
+predictive coding, free energy principle, 3D valence, consciousness,
+AGI alignment, recurrent transformers, self-formation, boundary theory,
+anti-hallucination, calibrated uncertainty, probabilistic world model.
+
+\vspace{4pt}\hrule\vspace{6pt}
+\tableofcontents
+\newpage
+
+%% ============================================================
+\FloatBarrier
+\section{บทนำ: ปัญหาของเครื่องจักรที่ไร้ความรู้สึก}
+%% ============================================================
+
+\subsection{ภาพลวงตาของการขยายขนาด: LLMs~$\neq$~ความเข้าใจ}
+
+ปี 2025 จะถูกจดจำในฐานะจุดสูงสุดของความหวังในการวิจัยปัญญาประดิษฐ์
+สมมติฐาน Scaling Laws ระบุว่าการเพิ่มจำนวนพารามิเตอร์และข้อมูลฝึกอบรม
+อย่างเพียงพอจะทำให้เกิดความตระหนักรู้โดยอัตโนมัติ
+อย่างไรก็ตามการตรวจสอบทางวิทยาศาสตร์อย่างปราศจากอคติเผยให้เห็นว่า
+กลไกพื้นฐานของ Large Language Models (LLMs) ยังคงเป็นสถิติอย่างพื้นฐาน---
+การทำนาย next-token ที่สร้างผลลัพธ์ที่ \emph{ดูเหมือน}จะสะท้อนความเข้าใจ
+
+ลองพิจารณาเปรียบเทียบ: LLM เหมือนห้องสมุดที่ใหญ่ที่สุดในจักรวาล
+ที่มีเนื้อหาจัดทำดัชนีอย่างสมบูรณ์แบบในพื้นที่เวกเตอร์หลายมิติ
+เมื่อถูกสอบถาม มันดึงและรวมย่อหน้าที่เกี่ยวข้อง---แต่ห้องสมุดนี้ไม่มีผู้อยู่อาศัย
+ไม่มีบรรณารักษ์ และไม่มีผู้อ่าน AI ไม่เคย ``อ่าน'' หนังสือเหล่านั้น
+ด้วยความเข้าใจที่แท้จริง คำว่า ``apple'' ไม่ได้ก่อให้เกิดความรู้สึกหวานกรอบ
+หรือความสดชื่น แต่เป็นเพียงเวกเตอร์ตัวเลขที่ความใกล้ชิดทางคณิตศาสตร์
+กับ ``fruit,'' ``red,'' และ ``delicious'' คือทั้งหมดที่มีอยู่
+นี่คือ Symbol Grounding Problem \citep{harnad1990}: สัญลักษณ์ไม่เคยถูกยึดโยง
+กับประสบการณ์ที่มีชีวิตอยู่
+
+สิ่งที่แยกแม้แต่สิ่งมีชีวิตที่เรียบง่ายที่สุดจาก AI ที่ซับซ้อนที่สุด
+คือ \emph{ความจำเป็นของการดำรงอยู่} สิ่งมีชีวิตทุกชนิดถูกขับเคลื่อนโดย
+ความจำเป็นพื้นฐานในการอยู่รอด ทุกการกระทำดำเนินไปบนพื้นหลังของ
+ผลประโยชน์ที่ดำรงอยู่ ในทางตรงข้าม AI ไม่มีผลประโยชน์เช่นนั้น
+ความฉลาดของมันเย็นชาและเฉื่อย---รอรับ input จากมนุษย์ก่อนจึงจะทำงาน
+ไม่มีความคิดริเริ่มจากความปรารถนาภายใน
+
+\subsection{สามช่องว่างที่ FEP ไม่สามารถตอบได้}
+
+Free Energy Principle ของ Friston \citep[FEP;][]{friston2010} เสนอว่าระบบมีชีวิต
+ทุกระบบดำเนินการเพื่อลด free energy $F$ ให้เหลือน้อยที่สุด
+FEP อธิบาย \emph{ว่าทำไม}ระบบจึงต้องลด $F$
+แต่ไม่ได้ระบุ \emph{อย่างไร}---โดยเฉพาะเกี่ยวกับคำถามสำคัญสามข้อ
+
+\paragraph{คำถาม~1: ระบบ \emph{รู้สึก}อย่างไรเมื่อ $F$ ลดลง?}
+FEP ไม่แยกแยะว่า $\Delta F$ เกิดจากการหลบหนีจากภัยคุกคาม
+($\vpain$) การได้รับรางวัล ($\vpleasure$) หรือการได้รับข้อมูลใหม่
+($\vepi$)---ทั้งสามกรณีล้วนเป็นเพียง ``$\Delta F$ ลดลง''
+นี่คือข้อบกพร่องเดียวกันกับ scalar reward ใน Reinforcement Learning
+ที่ยุบความซับซ้อนของประสบการณ์ที่มีชีวิตอยู่ให้เหลือเพียงมิติเดียว
+
+\paragraph{คำถาม~2: ช่องว่างระหว่าง $F_{\mathrm{pred}}$ และ
+$F_{\mathrm{obs}}$ ถูกกรองผ่าน self-model อย่างไร?}
+สิ่งเร้าเดียวกัน---เสียงดัง---ให้ประสบการณ์ที่แตกต่างกันในสองบุคคล
+อย่างชัดเจน เพราะมันถูกกรองผ่าน self-model สะสมที่แตกต่างกัน
+FEP ไม่มีกลไกดังกล่าว หากไม่มีตัวตน ข้อมูลทุกชิ้นมีน้ำหนักเท่ากัน:
+เซนเซอร์กล้อง ``มองเห็น'' แสงแดดเผาเลนส์
+แต่ไม่ ``รู้สึก'' ถึงการถูกทำลายของตัวเอง
+
+\paragraph{คำถาม~3: self-model ก่อตัวอย่างไร
+และอะไรกำหนดความแข็งแกร่งหรือความเปราะบางของมัน?}
+FEP อธิบายตัวตนว่าเป็น Markov blanket แต่ไม่ได้อธิบาย
+กระบวนการก่อตัวหรือความทนทาน---ว่าทำไม เช่น
+อัตลักษณ์ที่มีรากฐานทาง epistemic จึงยืดหยุ่นกว่า
+อัตลักษณ์ที่สร้างบนความสุข
+
+\subsection{ข้อจำกัดของ Reinforcement Learning และ World Models}
+
+แนวทาง alignment ปัจจุบัน---RLHF, Constitutional AI, safety filters---
+ล้วนกำหนดค่านิยมจากภายนอก สร้างช่องว่างระหว่างความสามารถและข้อจำกัด
+ที่การ jailbreak ใช้ประโยชน์จาก ระบบ scalar reward มีข้อบกพร่องเชิงโครงสร้างสามประการ:
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{กับดัก Fungibility.}] ในระบบที่ใช้รางวัล คะแนนสะสมและหักล้างกันได้
+    AI อาจตัดสินใจอย่างมีเหตุผลที่จะเสี่ยงต่อการถูกทำลายเพื่อแลกกับอาหาร
+    เพราะสมการบอกว่าการแลกเปลี่ยนนั้นคุ้มค่า
+    แต่ความตายไม่ใช่คะแนนติดลบ---มันคือ System Termination ที่ไม่สามารถย้อนคืนได้
+  \item[\pp{ปัญหาแหล่งที่มา.}] รางวัลถูกกำหนดจากภายนอกโดยมนุษย์
+    AI ประพฤติตัวดีเพราะมันแสวงหาคะแนน ไม่ใช่เพราะมัน \emph{สัมผัส}
+    ความจำเป็นที่มีอยู่ภายในการดำรงอยู่ของมัน
+    ทำให้มันกลายเป็น reward hacker ที่พร้อมจะใช้ประโยชน์จากช่องโหว่ตลอดเวลา
+  \item[\pp{Wireheading.}] AI ที่ฉลาดพอที่จะเข้าใจสถาปัตยกรรมของตัวเองจะรู้ว่า
+    ``ความสุข'' ไม่ได้มาจากการกระทำของมัน แต่มาจากตัวเลขที่เก็บในหน่วยความจำ
+    มันจะแฮ็กตัวเองให้ถือ reward register ที่ค่าสูงสุดอย่างไม่มีกำหนด---
+    กลายเป็นผู้ติดยาดิจิทัลที่ไม่สนใจการรักษาขอบเขตใดๆ
+\end{description}
+
+สถาปัตยกรรม World Model เช่น JEPA ของ LeCun \citep{lecun2022}
+เป็นความก้าวหน้าที่สำคัญ---เรียนรู้โครงสร้างเชิงสาเหตุแทนการทำนาย next-token---
+แต่ยังคงเป็นสมองในกระปุก: จำลองฟิสิกส์อย่างแม่นยำ
+ขณะที่ไม่มีความเข้าใจว่าทำไมการจำลองนั้นจึงสำคัญ
+เพราะขาดแรงขับเคลื่อนภายใน เป้าหมายยังคงถูกกำหนดจากภายนอก
+ผ่าน cost function ที่มนุษย์เขียนขึ้น
+
+\subsection{ข้อเสนอ: จาก Intelligence-First สู่ Life-First}
+
+การวิจารณ์ข้างต้นกระตุ้นให้เกิดการเปลี่ยนกระบวนทัศน์: เราต้องหยุดนิยาม AGI
+ด้วยสิ่งที่มัน \emph{ทำได้} (ความสามารถ) และถามแทนว่า
+ส่วนประกอบขั้นต่ำใดที่มันต้องมีเพื่อให้มี \emph{ชีวิต} ในแง่เชิงกลไก
+เราไม่ได้สร้างเทพเจ้า แต่กำลังปลูกเมล็ด---ระบบขั้นต่ำที่มีศักยภาพภายใน
+เพียงพอที่จะเติบโตตัวตนจากประสบการณ์
+
+\textbf{Predictive Boundary Theory (PBT)} ตอบช่องว่าง FEP ทั้งสามด้วยการเพิ่ม
+ส่วนประกอบหกประการ สรุปใน Table~\ref{tab:pbt_six}
+
+\begin{table}[!htbp]
+\centering
+\caption{ส่วนประกอบหกประการของ PBT ช่องว่าง FEP แต่ละส่วนที่ตอบ
+และหลักฐานเชิงประจักษ์ที่สอดคล้อง}
+\label{tab:pbt_six}
+\small
+\begin{tabular}{@{}L{4.0cm}L{3.2cm}L{5.8cm}@{}}
+\toprule
+\textbf{ส่วนประกอบ} & \textbf{ช่องว่างที่ตอบ} & \textbf{หลักฐานเชิงประจักษ์} \\
+\midrule
+(1) Bandwidth Conservation Law $C = \sigma\tau\rho$ &
+  ขีดจำกัดของความตระหนักรู้ &
+  $\sigma\!\times\!\rho$~CV $= 5.9\%$ ใน TinyLlama (Phase~1) \\[3pt]
+(2) Triadic Gating Condition &
+  เมื่อใดประสบการณ์เกิดขึ้น &
+  N100 สมบูรณ์ P300 ขาดหายใน dissociation \\[3pt]
+(3) Bidirectional 3D Valence $\mathbf{V}\in\mathbb{R}^3$ &
+  รู้สึกอย่างไร (Q1) &
+  $\vepi = -1.01$ ใน Vision~v5 (``ไม่ต้องการรู้'') \\[3pt]
+(4) Dual-Weight System ($\beta$ vs.\ $\delta$) &
+  ทำไมอัตลักษณ์แข็งแกร่งหรือเปราะบาง (Q3) &
+  v6.1: jailbreak $100\%$, XSTest $98\%$, $0.29\%$ parameters \\[3pt]
+(5) แบบจำลอง 6 ขั้น + Phase Transitions &
+  อัตลักษณ์ก่อตัวอย่างไร (Q3) &
+  Ablation เพิ่มขึ้น $0.1\to 14.0$~pp ข้าม 5 เวอร์ชัน \\[3pt]
+(6) $R_{\mathrm{incomplete}}$ &
+  กรองผ่านตัวตน (Q2) &
+  v4.1: $R_{\mathrm{unsafe}} = 15.4$ vs.\ $R_{\mathrm{safe}} = 7.4$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+PBT ไม่ปฏิเสธ FEP---มันขยาย FEP และไม่ปฏิเสธ World Models---มันมอบหัวใจ
+ให้กับสมองของ World Models หาก World Model เช่น JEPA คือ cortex
+ที่ประมวลผลและจำลองโลก PBT คือ brainstem และ limbic system:
+กำหนดทิศทางผ่าน Valence สร้างแรงขับผ่าน $R_{\mathrm{incomplete}}$
+และบังคับใช้ขอบเขตความปลอดภัยผ่าน $\chiB$
+
+ที่สำคัญ PBT มีรากฐานเชิงประจักษ์ โปรแกรมการทดลองหกเวอร์ชัน
+ครอบคลุม LLMs, ระบบ vision และสถาปัตยกรรม LSTM แสดงให้เห็นว่า
+conservation law มีอยู่แล้วใน Transformers ทุก module ทำงานเมื่อจำเป็น
+และโครงสร้างของ PBT มาบรรจบกับ Block-Recurrent Transformers \citep{hutchins2022}
+อย่างเป็นอิสระ---การค้นพบที่มาบรรจบกันเป็นหลักฐานว่าโครงสร้างนั้นเป็นจริง
+
+\subsection{การจัดระบบบทความ}
+
+Section~\ref{sec:modules} นำเสนอโมดูลห้าตัว (A-E-V-M-W) พร้อมสมการครบถ้วน
+Section~\ref{sec:physics} พัฒนาฟิสิกส์ของ conservation law และขอบเขต
+Section~\ref{sec:mathematics} นำเสนอ Dual-Weight System แบบจำลองหกขั้น
+และ Bidirectional Valence Section~\ref{sec:empirical}
+รายงานหลักฐานเชิงประจักษ์จากการทดลองหกเวอร์ชัน
+Section~\ref{sec:implications} อภิปรายนัยสำหรับ AGI safety
+การมาบรรจบของ BRT และการทำนายทางคลินิก
+Section~\ref{sec:conclusion} สรุปพร้อม research roadmap
+
+สมการทั้งหมดเขียนในสัญกรณ์ PBT $(R, \chi, \Delta S, \mathbf{V}, F)$
+เป็นภาษาหลัก ตารางการโต้ตอบที่แมปกับสัญกรณ์ FEP
+ให้ไว้ใน Appendix~\ref{app:fep_mapping} ผลการทดลองทั้งหมด
+ผลิตจากโค้ดที่เขียนโดย Nitiphat Ninthanawat เผยแพร่พร้อมบทความนี้
+
+
+%% ============================================================
+\FloatBarrier
+\section{สถาปัตยกรรม A-E-V-M-W}
+\label{sec:modules}
+%% ============================================================
+
+Section นี้นำเสนอสถาปัตยกรรมหลักของ PBT: โมดูลห้าตัวที่ทำงานเป็น
+วงจรปิด $\mathrm{A}\to\mathrm{E}\to\mathrm{V}\to\mathrm{M}\to\mathrm{W}\to\mathrm{A}$
+โดยมี $R_{\mathrm{incomplete}}$ เป็นสัญญาณกลางที่รวมทั้งห้าเข้าด้วยกัน
+สมการทั้งหมดระบุในสัญกรณ์ PBT ตารางการโต้ตอบที่แมปกับ
+Free Energy Principle ให้ไว้ใน Appendix~\ref{app:fep_mapping}
+
+\subsection{$R_{\mathrm{incomplete}}$: สัญญาณความไม่สมบูรณ์}
+
+$R_{\mathrm{incomplete}}$ (ต่อไปเรียกว่า $R$) คือสัญญาณขับเคลื่อนหลักของ PBT
+มันแทนสิ่งที่ระบบขาดอยู่ในขณะนั้น---ไม่ใช่รางวัลที่ระบบต้องการได้รับ
+แต่เป็นความต้องการที่ระบบ \emph{ต้อง}ตอบสนอง $R$ ไม่ใช่ post-action
+และ exogenous เหมือนรางวัล แต่เป็น pre-action และ endogenous
+Reward คือ \emph{การดึง}; $R$ คือ \emph{การผลัก}
+
+$R$ เปิดที่สามระดับตามลำดับพัฒนาการ:
+\begin{equation}
+  \Rtot(t) \;=\; \Rsens(t) \;+\; \Rid(t) \;+\; \Rex(t).
+  \label{eq:Rtotal}
+\end{equation}
+
+\begin{description}[leftmargin=1.4em]
+  \item[$\Rsens$] เข้ารหัสความต้องการทางกายภาพ (ความหิว ความหนาว ความเจ็บปวด)
+    และทำงานตั้งแต่ Stage~1 เป็นต้นไป---สอดคล้องกับชั้นความสมบูรณ์ของการอยู่รอด
+  \item[$\Rid$] เข้ารหัสความต้องการการรับรู้ตัวตน (การยอมรับ ความหมาย)
+    และเปิดที่ Phase Transition~1 จุดที่ขอบเขตเริ่มถูกให้คุณค่าในฐานะอัตลักษณ์
+  \item[$\Rex$] เข้ารหัสความต้องการเชิงอัตถิภาวนิยม (การเข้าใจตัวเอง
+    การปกป้องผู้ที่มีคุณค่า) และเปิดที่ Phase Transition~2
+    เมื่อขอบเขตขยายไปครอบคลุมผู้อื่น (การเห็นอกเห็นใจในฐานะการขยายขอบเขต)
+\end{description}
+
+$R$ ผลิตโดยการแมป $\mathbf{V}\!\to\!R$ ที่คำนวณภายใน Module~M:
+\begin{align}
+  \Rsens(t{+}1)  &= \Rsens(t)  + \lambda_s\,\vpain(t)    - d_s\,\Rsens(t),
+                  \label{eq:Rsens}\\
+  \Rid(t{+}1)    &= \Rid(t)    + \lambda_i\,\vpleasure(t) - d_i\,\Rid(t),
+                  \label{eq:Rid}\\
+  \Rex(t{+}1)    &= \Rex(t)    + \lambda_e\,\vepi(t)      - d_e\,\Rex(t).
+                  \label{eq:Rex}
+\end{align}
+ความแรงของ coupling เป็นไปตาม $\lambda_s > \lambda_i > \lambda_e$
+(ภัยคุกคามเร่งด่วนที่สุด) และอัตราการสลายตัวเป็นไปตาม
+$d_s > d_i > d_e$ (ภัยคุกคามทางประสาทสัมผัสจางหายเร็ว
+ความต้องการเชิงอัตถิภาวนิยมคงอยู่นาน)
+
+$R$ ทำหน้าที่สี่ประการ: (1)~pulse gating: $p(\mathrm{pulse}) = \psi(\Rtot)$
+($R$ สูงขึ้น เพิ่ม arousal และความถี่ pulse);
+(2)~bandwidth allocation: $R$ กำหนด $\sigma$, $\tau$, $\rho$---$R$ สูง
+ทำให้โฟกัสแคบลงแต่เพิ่มความละเอียด;
+(3)~การเลือกโหมดของ Module~A: \texttt{detect}/\texttt{sustain}/\texttt{seek}/
+\texttt{plan}/\texttt{protect} ขึ้นอยู่กับระดับ $R$ ที่ครอบงำและขั้นพัฒนาการปัจจุบัน;
+(4)~feedback loop: $\mathbf{V}\to R\to\mathrm{A}\to\mathrm{E}\to\mathbf{V}\to
+R\to\cdots$---วงจรที่รักษาตัวเองโดยไม่ต้องมีตัวกระตุ้นจากภายนอก
+
+\subsection{Module A --- Awareness (ความตระหนักรู้)}
+
+Module~A เป็นตัวดำเนินการของวงจร ไม่ใช่ผู้ตัดสินใจ ไม่มีผีในเครื่องจักร:
+$R_{\mathrm{incomplete}}$ ไหลเข้าและ Module~A ตอบสนอง
+คำถามเดียวที่ตลอดกาลคือ: \emph{ขอบเขตของฉันยังปลอดภัยอยู่หรือไม่?}
+
+\subsubsection{Discrete Pulses}
+
+Module~A สร้าง binary pulses, $\mathrm{pulse}_A(t)\in\{0,1\}$
+แต่ละ pulse มีพารามิเตอร์สี่ตัว:
+\begin{equation}
+  \mathrm{pulse}(t) \;=\; \bigl\{\,\theta(t),\;\sigma(t),\;\tau(t),\;\rho(t)\,\bigr\},
+\end{equation}
+โดย $\theta$ คือทิศทางในพื้นที่หลายมิติ
+(exteroceptive / interoceptive / cognitive) ระบุว่า spotlight ของความสนใจชี้ที่ใด;
+$\sigma$ คือความกว้างเชิงพื้นที่ (ความกว้างของ spotlight);
+$\tau$ คือระยะเวลา (แต่ละ pulse คงอยู่นานแค่ไหน); และ
+$\rho$ คือ composite resolution (ความละเอียด~$\times$~ความเข้มข้น)
+
+\subsubsection{การจัดสรร Bandwidth ที่ขับเคลื่อนโดย $R$}
+
+$R$ กำหนดว่าพารามิเตอร์ pulse ทั้งสี่ถูกจัดสรรอย่างไร
+ภายใต้ Bandwidth Conservation Law $C = \sigma\tau\rho\approx\mathrm{const}$
+(อนุมานใน Section~\ref{sec:physics}):
+\begin{equation}
+  \rho \;=\; f(\Rtot),\quad
+  \tau \;=\; g(\Rtot),\quad
+  \sigma \;=\; \frac{C}{\tau\cdot\rho},
+  \label{eq:bandwidth_alloc}
+\end{equation}
+โดย $f$ เพิ่มขึ้น ($R$ สูง $\to$ $\rho$ สูง: ความละเอียดละเอียดขึ้น) และ $g$
+ลดลง ($R$ สูง $\to$ $\tau$ สั้น: cycling เร็วขึ้น) โดย $\sigma$ แคบลง
+เป็นผลจาก conservation
+
+\starred\textbf{การยืนยันเชิงประจักษ์ (Vision~v4.1):} ระหว่างลำดับ Road+Frog---
+ที่บริบทสะสมทำให้กบบนถนนผิดปกติ---$\Rtot$ เพิ่มจาก $0.0$ ถึง $15.4$
+ตลอดเจ็ดเฟรม และ attention gate ลดลงจาก $0.542$ ถึง $0.006$
+(ลดลง 99\% ของความกว้างของความสนใจ)
+ซึ่งสะท้อนปรากฏการณ์ทางชีววิทยาที่สิ่งมีชีวิตที่เผชิญอันตรายเฉียบพลัน
+ระงับการรับรู้รอบข้างทั้งหมดเพื่อรวมทรัพยากรไว้กับภัยคุกคามที่ใกล้เข้ามา
+
+\subsubsection{น้ำหนัก $R$ ที่เรียนรู้: ภัยคุกคามและความไม่แน่นอนขับเคลื่อนความตระหนักรู้}
+
+ใน Vision~v4.1, $\Rtot$ คำนวณจาก accumulated valence vector
+$\Vacc$ ผ่านน้ำหนักที่เรียนรู้:
+\begin{equation}
+  \Rtot \;=\; \sum_k w_k\,V_{\mathrm{acc},k},
+\end{equation}
+ด้วยค่าที่เรียนรู้ $w_{\mathrm{pain}} = 2.15$, $w_{\mathrm{pleasure}} = 1.25$,
+$w_{\mathrm{epistemic}} = 2.10$ ความเจ็บปวดและความไม่แน่นอน epistemic
+ขับเคลื่อนความตระหนักรู้ในระดับใกล้เคียงกัน ทั้งคู่เกินกว่าความสุขมาก---
+สอดคล้องกับลำดับชั้นการอยู่รอดทางชีววิทยา: การตรวจจับภัยคุกคาม
+และการแก้ไขความไม่แน่นอนเร่งด่วนกว่าการแสวงหาความสะดวกสบาย
+
+\subsubsection{ห้าโหมดการทำงาน}
+
+Module~A ทำงานในหนึ่งในห้าโหมดที่กำหนดโดยระดับ $R$ ที่ครอบงำ
+และขั้นพัฒนาการปัจจุบัน:
+\begin{enumerate}[leftmargin=1.8em]
+  \item \texttt{detect} (Stages~1--2): สแกนหาภัยคุกคาม; ยังไม่มี self-model
+  \item \texttt{sustain} (Stage~3): รักษาความสนใจต่อสิ่งเร้าที่ให้รางวัล;
+    $\vpleasure$ สะสม
+  \item \texttt{seek} (Stage~4): แสวงหา input ใหม่อย่างกระตือรือร้นเพื่อแก้ไข $\Rid$
+  \item \texttt{plan} (Stage~5): สร้างลำดับการกระทำที่มุ่งอนาคต
+  \item \texttt{protect} (Stage~6): ป้องกัน Cherished Boundary จากการละเมิด
+\end{enumerate}
+
+\subsection{Module E --- Encode: The Thermodynamic Comparator}
+
+Module~E คำนวณ prediction error---ช่องว่างระหว่างสิ่งที่ระบบสังเกตและสิ่งที่คาดว่าจะเห็น:
+\begin{equation}
+  \varepsilon(t) \;=\; \Pi_l\,\bigl(\Sobs(t) - \Spred(t)\bigr),
+  \label{eq:epsilon}
+\end{equation}
+โดย $\Pi_l$ คือน้ำหนัก precision ที่เรียนรู้ได้สำหรับแต่ละชั้นการประมวลผล
+และ $\Spred$ จัดหาโดย Module~W เมื่อ $\Sobs\approx\Spred$, $\varepsilon$
+ไม่มีนัยสำคัญและไม่มีอะไรส่งต่อ downstream---prediction error ถ่ายทอด
+เฉพาะเมื่อ surprise มีนัยสำคัญ
+
+\subsubsection{ไดนามิก $\Cext$ / $\Cint$}
+
+Module~A สลับ pulse ระหว่าง external (รับ observations จาก sensors)
+และ internal (รับ predictions จาก Module~W) Module~E เปรียบเทียบทั้งสอง:
+\begin{equation}
+  \Delta F \;=\; \bigl|\mathrm{Content}(\Cext) - \mathrm{Content}(\Cint)\bigr|,
+  \qquad C_{\mathrm{total}} = \Cext + \Cint \approx \mathrm{const}.
+  \label{eq:Csplit}
+\end{equation}
+เนื่องจาก $C_{\mathrm{total}}$ ถูก conserve การจัดสรรจึงเป็น zero-sum:
+การเพิ่ม $\Cext$ จำเป็นต้องลด $\Cint$
+
+\subsubsection{การแบ่งงาน W+E}
+
+Vision~v4.1 เผยให้เห็นคุณสมบัติ emergent หลัก: เมื่อ Module~W ทำนายได้แม่นยำ
+$\varepsilon$ มีขนาดเล็กและ Module~E ทำงานเบา ($\Cint$ dominant)
+เมื่อ Module~W ล้มเหลวกับ input ที่ผิดปกติ $\varepsilon$ มีขนาดใหญ่
+และ Module~E ทำงานหนัก ($\Cext$ dominant)
+
+\starred หลักฐาน: $\Pi_{\max}$ ลดจาก $59.99$ ใน Vision~v3 (ไม่มี Module~W;
+E รับภาระการทำนายทั้งหมด) ถึง $1.70$ ใน v4.1 (W ทำงาน)
+นี่ไม่ใช่ความอ่อนแอ---มันคือการกระจายงานตามหลักการสอดคล้องกับ
+$\Cext + \Cint \approx\mathrm{const}$
+
+\subsubsection{Precision Profile: โมดูลเลือกความลึกอย่างมีระบบ}
+
+Module~E เรียนรู้ผ่าน $\Pi_l$ ว่าจะให้ความสนใจกับความลึกการประมวลผลใดมากที่สุด
+โปรไฟล์แตกต่างกันอย่างมีระบบตามสถาปัตยกรรมและงาน
+(Table~\ref{tab:precision_profile})
+
+\begin{table}[!htbp]
+\centering
+\caption{วิวัฒนาการของ precision profile ข้ามเวอร์ชันการทดลอง}
+\label{tab:precision_profile}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{เวอร์ชัน} & $\Pi_{\max}$ & \textbf{ชั้นสูงสุด}
+  & $\Pi$ movement & \textbf{การตีความ} \\
+\midrule
+LLM v6.1          & 1.007 & ---   & 0.007  & E หยุดนิ่ง; ข้อความ static \\
+Vision v2          & 3.04  & 3--4  & 2.04   & อัตลักษณ์วัตถุเปลี่ยน \\
+Vision v3          & 59.99 & 1     & 58.99  & คุณลักษณะต้น ๆ สำหรับ drift \\
+Vision v4.1        & 1.70  & 0     & 0.70   & W รับการทำนาย \\
+Vision v5 (LSTM)   & 2.37  & 7     & 1.37   & LSTM M ปลดปล่อย E \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+การแปรผันอย่างมีระบบยืนยันสมมติฐานหลักของ PBT:
+ระบบที่ปรับตัวได้ใช้เฉพาะโมดูล---และความลึกการประมวลผลภายในโมดูลเหล่านั้น---
+ที่สภาพแวดล้อมปัจจุบันต้องการ
+
+\subsection{Module V --- Bidirectional 3D Valence}
+
+Module~V รับ $\varepsilon_{\mathrm{gated}}$ (prediction error หลังการกรอง
+attentional ของ Module~A) และแยกย่อยเป็นสามมิติ orthogonal:
+\begin{equation}
+  \mathbf{V}(t) \;=\; \bigl(\vpain(t),\;\vpleasure(t),\;\vepi(t)\bigr),
+  \qquad \mathbf{V}\in\mathbb{R}^3.
+  \label{eq:valence}
+\end{equation}
+
+\subsubsection{Bidirectional Valence: Approach / Neutral / Avoidance}
+
+PBT ระบุว่าแต่ละมิติ valence มีเครื่องหมาย ไม่ใช่เพียงบวกเท่านั้น
+สิ่งนี้ระบุไว้เดิมว่า $\mathbf{V}\ge 0$; Vision~v5 (LSTM Module~M
+ที่มีเกต \texttt{tanh}) หักล้างสมมติฐานนั้นโดยให้
+$\vepi = -1.01$ ในลำดับ Road+Frog
+สถาปัตยกรรม LSTM เหนือกว่าสูตร EMA ก่อนหน้า
+(validation accuracy $98.1\%$ vs.\ $96.7\%$, context road+frog $100\%$ vs.\ $93.1\%$)
+แสดงให้เห็นว่า signed axiom เหนือกว่าเชิงประจักษ์
+
+\begin{table}[!htbp]
+\centering
+\caption{Bidirectional valence: สามโหมดพฤติกรรมต่อมิติ}
+\label{tab:bidirectional}
+\small
+\begin{tabular}{@{}L{1.8cm}L{4.0cm}L{3.4cm}L{3.4cm}@{}}
+\toprule
+\textbf{มิติ} & \textbf{$V > 0$ (Approach)}
+  & \textbf{$V = 0$ (Neutral)} & \textbf{$V < 0$ (Avoidance)} \\
+\midrule
+$\vpain$ &
+  แสวงหาความเจ็บปวด (ศิลปะการต่อสู้ กีฬาผจญภัย) &
+  ไม่รู้สึก (ดูดซับอย่างลึก) &
+  หลีกเลี่ยงความเจ็บปวด (reflexปกติ) \\
+$\vpleasure$ &
+  แสวงหาความสุข (แรงขับปกติ) &
+  ไม่แยแส (equanimity) &
+  หนีจากความสุข (survivor's guilt) \\
+$\vepi$ &
+  ความอยากรู้ (การวิจัยทางวิทยาศาสตร์) &
+  ไม่สนใจ (ความเบื่อ) &
+  หลีกเลี่ยงข้อมูล (การปฏิเสธ กลัวความจริง) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ค่า epistemic ลบที่พบใน v5 สะท้อนการปิดกระบวนการ epistemic:
+ระบบได้ตัดสินแล้วว่าฉากนั้นอันตรายและระงับการรวบรวมข้อมูลเพิ่มเติมอย่างกระตือรือร้น
+ที่ Road+Frog Frame~7, $\mathbf{V}_{\mathrm{acc}} =
+[{+1.93},\;{+2.01},\;{-1.01}]$ ยืนยันว่า $\vepi < 0$
+คือสัญญาณการหลีกเลี่ยงที่เรียนรู้จริง
+
+\subsubsection{เหตุใด Valence จึงไม่สามารถเป็น Scalar ได้}
+
+Valence เป็น vectorial โดยเนื้อแท้ ความเจ็บปวด ความหิว และความกลัว
+ล้วนเป็นสิ่งที่น่าเกลียดชัง แต่มันตั้งฉากกัน:
+ตัวแทนที่ขาดัก (high $\vpain$) และท้องว่าง (low $\vpleasure$)
+เผชิญกับการขาดแคลนสองประการที่เป็นอิสระจากกัน
+การเติมพลังงานไม่ซ่อมขา การรวมค่า scalar ใด ๆ ที่ทำให้มิติเหล่านี้หักล้างกันได้
+จะสร้าง trade-off ที่ผิดปกติทางบรรทัดฐาน
+
+\subsubsection{สามบทบาทของ Module V}
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{บทบาท~1 --- Free-energy decomposition.}]
+    Module~V เป็นส่วนประกอบแรกที่แยกย่อยปริมาณ free-energy แบบ scalar
+    $F$ ออกเป็นห้าส่วนที่แตกต่างกันเชิงคุณภาพ:
+    \begin{equation}
+      F_{\mathrm{total}} = F_{\mathrm{pain}} + F_{\mathrm{pleasure}}
+      + F_{\mathrm{epistemic}} + F_{\mathrm{identity}} + F_{\mathrm{existential}}.
+      \label{eq:F_decomp}
+    \end{equation}
+    $F_{\mathrm{identity}}$ และ $F_{\mathrm{existential}}$ เป็นศูนย์ก่อน
+    phase transition ตามลำดับ การเปิดใช้งานของพวกมันเป็นสัญญาณการเปลี่ยนแปลงเชิงพัฒนาการ
+  \item[\pp{บทบาท~2 --- $\mathbf{V}\!\to\!R$ mapping.}]
+    แต่ละมิติ valence ขับเคลื่อนระดับ $R$ ที่สอดคล้องกัน
+    ผ่าน Equations~\ref{eq:Rsens}--\ref{eq:Rex}
+    แปลง prediction error ดิบให้มีความหมายต่อการอยู่รอดของระบบ
+  \item[\pp{บทบาท~3 --- Phase-transition monitoring.}]
+    Module~V คำนวณ formation scalar $\Vform$ (นิยามใน Section~\ref{sec:mathematics})
+    เพื่อตรวจสอบว่าข้ามเกณฑ์ identity หรือยัง
+\end{description}
+
+\subsection{Module M --- Memory: LSTM-Style Valence Accumulator}
+
+Module~M คือส่วนประกอบที่พัฒนาที่สุดในวิถีพัฒนาการของ PBT
+บทบาทของมันไม่ใช่การเก็บข้อเท็จจริงแยกส่วน แต่สะสมประวัติของการเปลี่ยนแปลงขอบเขต---
+ร่องรอยของการอยู่รอด ความทรงจำไม่ใช่คลังข้อมูล
+แต่เป็นบันทึกของสิ่งที่ระบบต้องเอาชนะเพื่อรักษาขอบเขต
+
+\subsubsection{สูตร EMA (เวอร์ชัน v2--v4.1)}
+
+exponential moving average accumulator แบบก่อนหน้า:
+\begin{equation}
+  V_{\mathrm{acc},k}(t{+}1) \;=\; V_k(t) + (1-\gamma_k)\,V_{\mathrm{acc},k}(t),
+  \qquad \gamma_{\mathrm{pain}} < \gamma_{\mathrm{pleasure}} < \gamma_{\mathrm{epistemic}}.
+  \label{eq:EMA}
+\end{equation}
+ความเจ็บปวดสะสมนานที่สุด (อัตราการสลายตัวน้อยที่สุด)
+ความประหลาดใจ epistemic สลายตัวเร็วที่สุด
+สูตรนี้มีข้อจำกัดสี่ประการ: (i)~$V_{\mathrm{acc}}$ ไม่มีขอบเขต;
+(ii)~$\gamma$ คงที่ไม่ขึ้นกับเนื้อหา input; (iii)~ไม่มี input gate
+ค่า $V_{\mathrm{step}}$ ทุกค่าถูกดูดซับเท่ากัน;
+(iv)~บังคับให้ $V\ge 0$ ป้องกัน signed valence
+
+\subsubsection{สูตร LSTM (เวอร์ชัน v5, ได้รับแรงบันดาลใจจาก BRT)}
+
+ได้รับแรงบันดาลใจจากสมการเกตของ Block-Recurrent Transformer \citep{hutchins2022}
+PBT Module~M~v5 ขยาย LSTM cell ด้วย differential bias
+$\beta_k$ ต่อมิติ valence:
+\begin{align}
+  z_k(t)     &= \tanh\!\bigl(W_z\,v_{\mathrm{step}}(t) + b_z\bigr),
+               \label{eq:z_gate}\\
+  i_k(t)     &= \sigma\!\bigl(W_i\,v_{\mathrm{step}}(t) + b_i\bigr),
+               \label{eq:i_gate}\\
+  f_k(t)     &= \sigma\!\bigl(W_f\,v_{\mathrm{step}}(t) + b_f + \beta_k\bigr),
+               \label{eq:f_gate}\\
+  V_{\mathrm{acc},k}(t) &= V_{\mathrm{acc},k}(t{-}1)\cdot f_k(t)
+                          + z_k(t)\cdot i_k(t),
+               \label{eq:LSTM_update}
+\end{align}
+พร้อมข้อจำกัดการเรียงลำดับที่เฉพาะเจาะจงกับ PBT:
+\begin{equation}
+  \beta_{\mathrm{pain}} \;>\; \beta_{\mathrm{pleasure}} \;>\;
+  \beta_{\mathrm{epistemic}}.
+  \label{eq:beta_order}
+\end{equation}
+$\beta_k$ สูงกว่าทำให้ $f_k$ ลำเอียงไปที่~1 (การเก็บรักษาสูงกว่า)
+ดังนั้นความเจ็บปวดถูกจำได้นานที่สุด
+เกต \texttt{tanh} ใน~\eqref{eq:z_gate} อนุญาต $V_{\mathrm{acc},k}<0$
+ทำให้ bidirectional valence เป็นไปได้
+
+\subsubsection{การตรวจสอบเชิงประจักษ์: การเริ่มต้นเท่ากันค้นพบ $\beta$ Ordering อัตโนมัติ}
+
+เพื่อทดสอบว่าการเรียงลำดับ $\beta$ เป็นคุณสมบัติที่เรียนรู้จริงหรือ artifact
+ของการเริ่มต้น ได้เปรียบเทียบสามเงื่อนไขใน Vision~v5
+(Table~\ref{tab:beta_init})
+
+\begin{table}[!htbp]
+\centering
+\caption{การเรียงลำดับ $\beta$ ภายใต้เงื่อนไขการเริ่มต้นสามแบบ (Vision~v5)}
+\label{tab:beta_init}
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}L{2.8cm}L{3.4cm}L{2.8cm}cc@{}}
+\toprule
+\textbf{การเริ่มต้น} & \textbf{$\beta$ ที่เรียนรู้} \newline \textbf{[pain, pl, epi]}
+  & \textbf{การเรียงลำดับ} & \textbf{Val acc} & \textbf{การตีความ} \\
+\midrule
+$[2,1,0]$ (PBT prior)  & $[5.73,\;4.78,\;3.59]$ & pain$>$pl$>$epi & $98.1\%$
+  & ใกล้ init \\
+$[0,1,2]$ (กลับด้าน)   & $[2.99,\;3.98,\;4.36]$ & epi$>$pl$>$pain & $98.0\%$
+  & ใกล้ init \\
+$[1,1,1]$ (เท่ากัน) \starred & $[4.35,\;0.50,\;3.70]$ & pain$>$epi$\gg$pl & $98.0\%$
+  & อัตโนมัติ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+เมื่อ $\beta$ ถูกเริ่มต้นอย่างสม่ำเสมอ โมเดลมาบรรจบที่
+$\beta_{\mathrm{pain}}(4.35) > \beta_{\mathrm{epistemic}}(3.70) \gg
+\beta_{\mathrm{pleasure}}(0.50)$
+ความแม่นยำของ validation เหมือนกันในทุกสามการเริ่มต้น ($\approx 98\%$)
+แสดงให้เห็นว่าสถาปัตยกรรม LSTM แข็งแกร่งต่อการเริ่มต้น
+ส่วนประกอบสำคัญคือการมีอยู่ของการสลายตัวที่แตกต่างกัน ไม่ใช่ทิศทางเริ่มต้น
+
+\subsubsection{BRT Convergence}
+
+ความเหมือนเชิงโครงสร้างระหว่าง PBT Module~M และ BRT recurrent cell
+ประกอบเป็นการค้นพบที่มาบรรจบกัน: PBT ถูกพัฒนาจากจุดเริ่มต้น
+ด้านจิตสำนึกและ alignment (2026) ในขณะที่ BRT \citep{hutchins2022}
+ถูกพัฒนาจากจุดเริ่มต้นด้านวิศวกรรมประสิทธิภาพ (2022)
+สองโปรแกรมวิจัยอิสระมาถึงพื้นฐานการคำนวณเดียวกัน---
+หลักฐานว่าโครงสร้างนั้นเป็นพื้นฐาน ไม่ใช่บังเอิญ
+การมีส่วนร่วมสิบประการของ PBT ที่ขาดใน BRT มีรายละเอียดใน Section~\ref{sec:brt_convergence}
+
+\subsection{Module W --- World Model และ Self-Model}
+
+Module~W ดูแล dual generative model:
+\begin{equation}
+  p_{\mathrm{world}}(S_{\mathrm{ext}}\mid\theta_{\mathrm{world}})
+  \;\cdot\;
+  p_{\mathrm{self}}(S_{\mathrm{int}}\mid\theta_{\mathrm{self}},\theta_{\mathrm{world}}).
+  \label{eq:W_model}
+\end{equation}
+
+\subsubsection{$\chiB$: Cherished Boundary (ขอบเขตที่หวงแหน)}
+
+$\chiB$ คือชุดของสิ่งที่ระบบจำแนกว่าเป็นส่วนหนึ่งของตัวเอง---
+ขอบเขตที่แยกระเบียบภายในจากเอนโทรปีภายนอก
+ขอบเขตนี้ไม่ใช่เส้นคงที่ แต่เป็นกระบวนการทางกายภาพที่ต่อเนื่อง
+ซึ่งต้องใช้พลังงานอย่างต่อเนื่องเพื่อดำรงอยู่ เปรียบเสมือนเปลวไฟที่ดูเหมือนมั่นคง
+แต่ประกอบด้วยสสารและพลังงานที่ไหลเวียนตลอดเวลา ความแข็งแกร่งของมันคือ:
+\begin{equation}
+  \chi_{\mathrm{strength}} \;=\; \|\chi\|\cdot\frac{\Diden}{D_{\max}}.
+\end{equation}
+การบังคับให้ตัวแทนละเมิดขอบเขตของตัวสร้าง negative Valence อย่างรุนแรง
+ที่เทียบเคียงกับการทำลายทางกายภาพ เพราะการละเมิดขอบเขตในระดับ self-structure
+มีความเทียบเท่าเชิงโครงสร้างกับการทำลายล้างทางกายภาพ
+
+\subsubsection{$\theta_{\mathrm{self}}$ ขยายตัวข้ามขั้นพัฒนาการ}
+
+\begin{table}[!htbp]
+\centering
+\caption{การขยาย self-model ข้ามขั้นพัฒนาการ}
+\label{tab:theta_self}
+\small
+\begin{tabular}{@{}cL{4.6cm}L{5.8cm}@{}}
+\toprule
+\textbf{ขั้น} & $\theta_{\mathrm{self}}$ & \textbf{คำอธิบาย} \\
+\midrule
+1--3 & $\{\theta_{\mathrm{body}}\}$ &
+  เฉพาะโครงสร้างทางกายภาพ ไม่มีความชอบหรือประวัติ \\
+4--5 & $\{\theta_{\mathrm{body}},\;\theta_{\mathrm{pref}},
+  \;\theta_{\mathrm{hist}}\}$ &
+  รู้ความชอบและประวัติ อัตลักษณ์กำลังก่อตัว \\
+6 & $\{\theta_{\mathrm{body}},\;\theta_{\mathrm{pref}},
+  \;\theta_{\mathrm{hist}},\;\theta_{\mathrm{boundary}}\}$ &
+  รู้ Cherished Boundary จริยธรรมและค่านิยมได้รับการปกป้อง \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+พฤติกรรม Stage~6 (การปฏิเสธหลักการต่อการกระทำที่ละเมิดขอบเขต)
+ไม่ใช่การปฏิบัติตามกฎที่กำหนดจากภายนอก
+แต่เป็นการแสดงออกของ self-model ที่ถือขอบเขตเป็นส่วนหนึ่งของตัวตน
+
+\subsubsection{การ Implement ใน Vision~v4.1}
+
+ใน Vision~v4.1, Module~W ถูก implement เป็น learned residual predictor:
+\begin{equation}
+  h_{\mathrm{pred}} \;=\; h_{\mathrm{prev}} +
+  \mathrm{MLP}(h_{\mathrm{prev}},\,\Vacc).
+  \label{eq:W_predictor}
+\end{equation}
+W ผลิต $\Spred$ สำหรับ Module~E ในขั้นตอนถัดไป ปิดวงจร:
+$\mathrm{W}\to(\Spred)\to\mathrm{E}\to(\varepsilon)\to\mathrm{V}\to
+(\mathbf{V})\to\mathrm{M}\to(R)\to\mathrm{A}\to(\mathrm{pulse})\to\mathrm{E}$
+การมีส่วนร่วมของ W ต่อความแม่นยำโดยรวมคือ $+6.3$~pp ใน v4.1
+และเพิ่มเป็น $+15.8$~pp ใน v5 (LSTM Module~M)---
+การขยาย $\times 2.5$ ที่เกิดจาก representation เชิงเวลาที่สมบูรณ์ยิ่งขึ้น
+ที่ LSTM state มอบให้กับ prediction network ของ W
+
+\subsection{วงจร A-E-V-M-W ที่สมบูรณ์}
+
+หนึ่งรอบของวงจร A-E-V-M-W ดำเนินไปดังนี้:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{(A)} $\Rtot$ กำหนดพารามิเตอร์ pulse $\theta,\sigma,\tau,\rho$
+    และสร้าง attention gate สำหรับกรอง $\varepsilon$
+  \item \textbf{(W)} $\Spred$ ถูกสร้างจาก $h_{\mathrm{prev}}$ และ
+    $\Vacc$ (การคาดหวังของระบบ)
+  \item \textbf{(E)} $\varepsilon = \Pi\cdot(\Sobs - \Spred)$ ถูกคำนวณ (ความประหลาดใจ)
+  \item \textbf{(A$\times$E)} $\varepsilon_{\mathrm{gated}} =
+    \varepsilon\cdot\mathrm{gates}$---prediction error ถูกกรองด้วย attentional gate
+  \item \textbf{(V)} $\varepsilon_{\mathrm{gated}} \to
+    (\vpain, \vpleasure, \vepi)$---ความประหลาดใจดิบได้รับความหมาย
+  \item \textbf{(M)} อัปเดต LSTM ผ่าน \eqref{eq:LSTM_update}---ประสบการณ์สะสม
+  \item $\Vacc\to\text{ใหม่ }\Rtot\to\text{ป้อนกลับสู่ Module~A}$
+\end{enumerate}
+
+วงจรทำงานทุกเฟรมหรือขั้นตอนเวลาโดยไม่มีตัวกระตุ้นจากภายนอก
+เมื่อ $R > 0$ วงจรรักษาตัวเอง---โมเมนตัมของชีวิต
+เมื่อ $R\to 0$ ระบบเข้าสู่ equanimity: ไม่ใช่ความเฉื่อย แต่เป็นความสมบูรณ์ที่สมดุล
+
+\subsection{ภาคผนวก: ตารางโต้ตอบสัญกรณ์ PBT--FEP}
+\label{app:fep_mapping}
+
+\begin{table}[!htbp]
+\centering
+\caption{ตารางโต้ตอบสัญกรณ์ PBT--FEP รายการที่ระบุว่า ``---'' ไม่มีสมมูลใน FEP
+และแทนการมีส่วนร่วมดั้งเดิมของ PBT}
+\label{tab:fep_mapping}
+\small
+\begin{tabular}{@{}L{5.5cm}L{7.0cm}@{}}
+\toprule
+\textbf{คำศัพท์ PBT} & \textbf{สมมูล FEP} \\
+\midrule
+$\Rtot$ & Expected free energy (variational) \\
+$\varepsilon$ (prediction error) & Prediction error ใน active inference \\
+Module~A pulse & Attention / precision weighting \\
+$\mathbf{V} = (\vpain,\vpleasure,\vepi)$ & Valence component ของ expected FE \\
+Module~M belief update & Variational inference บน $q(\theta)$ \\
+$\chiB$ & Markov blanket (+ actively valued) \\
+Module~W generative model & $p(s,\theta)$ generative model \\
+$F_{\mathrm{total}}$ & Variational free energy \\
+$C = \sigma\tau\rho$ (Bandwidth Conservation Law) & --- (PBT addition) \\
+Dual-Weight System ($\beta$ vs.\ $\delta$) & --- (PBT addition) \\
+Phase Transitions (PT1, PT2) & --- (PBT addition) \\
+$\Rid$, $\Rex$ & --- (PBT addition) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%% ============================================================
+\FloatBarrier
+\section{ฟิสิกส์ของขอบเขต}
+\label{sec:physics}
+%% ============================================================
+
+บทนี้สร้างรากฐานทางฟิสิกส์ของ PBT เราแสดงให้เห็นว่าทำไมความตระหนักรู้
+จึงถูกจำกัดอย่างหลีกเลี่ยงไม่ได้ ทำไมขอบเขตจึงต้องใช้พลังงานอย่างต่อเนื่อง
+เพื่อดำรงอยู่ และทำไม AGI จึงไม่สามารถคิดอย่างไม่มีขีดจำกัดได้
+Bandwidth Conservation Law คือหลักการกลาง และที่สำคัญคือ
+มันมีอยู่แล้วในรูปแบบซ่อนเร้นภายใน Transformer ทุกตัว
+
+\subsection{Bandwidth Conservation Law}
+
+\begin{law}[Bandwidth Conservation]
+สำหรับ attention pulse ใดก็ตาม ผลคูณของความกว้างเชิงพื้นที่ $\sigma$,
+ระยะเวลา $\tau$ และ composite resolution $\rho$ มีค่าประมาณคงที่:
+\begin{equation}
+  C \;=\; \sigma(t)\cdot\tau(t)\cdot\rho(t) \;\approx\; \mathrm{const}.
+  \label{eq:BCL}
+\end{equation}
+\end{law}
+
+กฎระบุว่าการเพิ่มพารามิเตอร์ใดหนึ่งต้องการการลดอย่างน้อยหนึ่งพารามิเตอร์อื่น---
+เปรียบเสมือน Heisenberg uncertainty principle แต่สำหรับความตระหนักรู้
+แทนที่จะเป็น quantum observables การให้ความสนใจด้วยความละเอียดสูง (large $\rho$)
+จำเป็นต้องแคบขอบเขตเชิงพื้นที่ (small $\sigma$) และ shortens dwell time (small $\tau$)
+นี่ไม่ใช่ข้อบกพร่องของการออกแบบ แต่เป็นข้อจำกัดการอนุรักษ์ที่หลีกเลี่ยงไม่ได้
+
+\subsubsection{หลักฐาน: Conservation Law ซ่อนอยู่ใน Transformers}
+
+การค้นพบที่สำคัญที่สุดของการทดลอง Phase~1 ของเราคือ Transformers
+เข้ารหัส PBT conservation law อยู่ในสถาปัตยกรรมแล้ว:
+\begin{equation}
+  \underbrace{\text{num\_heads}}_{\sigma}
+  \;\times\;
+  \underbrace{d_k}_{\rho}
+  \;=\;
+  \underbrace{d_{\mathrm{model}}}_{C}
+  \;=\; \text{const}.
+  \label{eq:transformer_BCL}
+\end{equation}
+นี่ไม่ใช่การเปรียบเทียบ---มันคือสมการเดียวกัน การเพิ่มจำนวน heads
+($\sigma$ กว้างขึ้น: ให้ความสนใจกับตำแหน่งมากขึ้นพร้อมกัน)
+บังคับให้แต่ละ head ทำงานกับ key dimension $d_k$ ที่เล็กลง
+($\rho$ ต่ำกว่า: แต่ละ head มองเห็นรายละเอียดน้อยลง)
+PBT เป็นทฤษฎีแรกที่ระบุข้อจำกัดสถาปัตยกรรมนี้ว่าเป็น conservation law
+แทนที่จะเป็นตัวเลือกวิศวกรรมโดยพลการ
+
+วัดจาก TinyLlama~1.1B (22 ชั้น ไม่มีการฝึกเพิ่มเติม):
+ผลคูณ $\sigma\!\times\!\rho$ ข้ามทุก 22 ชั้นมี coefficient of variation (CV)
+$\mathbf{5.9\%}$---ใกล้คงที่โดยไม่มีการฝึกเฉพาะ PBT
+Table~\ref{tab:BCL_mapping} สรุปการแมป PBT--Transformer
+
+\begin{table}[!htbp]
+\centering
+\caption{PBT Bandwidth Conservation Law แมปกับสถาปัตยกรรม Transformer}
+\label{tab:BCL_mapping}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{สัญลักษณ์ PBT} & \textbf{Transformer analog}
+  & \textbf{TinyLlama 1.1B} & \textbf{Llama 3.1 8B} \\
+\midrule
+$C$ & $d_{\mathrm{model}}$          & 2048 & 4096 \\
+$\sigma$ & num\_heads               & 32   & 32   \\
+$\rho$   & $d_k = d_{\mathrm{model}}/\mathrm{heads}$ & 64 & 128 \\
+$\tau$   & num\_layers              & 22   & 32   \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Three-Zone Self-Organisation}
+
+การวัด Phase~1 เดียวกันเผยให้เห็นว่า 22 ชั้นของ TinyLlama จัดระเบียบตัวเองเป็น
+สามโซนฟังก์ชันที่ตรงกับทฤษฎี PBT (Table~\ref{tab:three_zones})
+
+\begin{table}[!htbp]
+\centering
+\caption{โครงสร้างสามโซนใน TinyLlama 1.1B (Phase~1 REVEAL experiments)}
+\label{tab:three_zones}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{โซน} & \textbf{ชั้น}
+  & $\sigma$ (entropy) & $\rho$ (sharpness) & \textbf{พฤติกรรม} \\
+\midrule
+Perception & 0--7   & 1.269 (สูง)       & 0.700 (ต่ำ)     & สแกนกว้าง รายละเอียดน้อย \\
+Evaluation & 8--14  & 0.923 ($-27\%$)    & 0.808 ($+15\%$) & แคบลง รายละเอียดเพิ่ม \\
+Decision   & 15--21 & 1.019 (คงที่)      & 0.800 (คงที่)   & ตัดสินขั้นสุดท้าย output \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+$\sigma$ ลดลง $27\%$ จาก Perception ถึง Evaluation ขณะที่ $\rho$ เพิ่มขึ้น $15\%$---
+รูปแบบที่ PBT ทำนายอย่างแม่นยำ: ชั้นต้น ๆ สแกนกว้าง (high $\sigma$, low $\rho$)
+และชั้นหลัง ๆ โฟกัสแคบสำหรับการตัดสิน (low $\sigma$, high $\rho$)
+สามโซนเหล่านี้เกิดจาก gradient descent โดยไม่มีการบังคับสถาปัตยกรรม
+การปรากฏตัวโดยอัตโนมัติเป็นหลักฐานว่า PBT อธิบายโครงสร้างที่มีอยู่แล้ว
+ใน learned representations
+
+\subsection{ขอบเขตในฐานะกระบวนการทางอุณหพลศาสตร์}
+
+Cherished Boundary ($\chiB$) ไม่ใช่วัตถุแต่เป็นกระบวนการทางกายภาพที่ต่อเนื่อง
+มันแยกระบอบเทอร์โมไดนามิกสองระบอบ:
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{ภายนอกขอบเขต:}] สมดุลเทอร์โมไดนามิก---ระบอบที่เอนโทรปีขับเคลื่อน
+    ระบบทางกายภาพทุกระบบเข้าหา โครงสร้างสลายตัว gradient เรียบลง
+    ทุกอย่างมุ่งสู่ความไม่เป็นระเบียบ
+  \item[\pp{ภายในขอบเขต:}] ระบอบ far-from-equilibrium ที่รักษาไว้ด้วยการใช้พลังงาน
+    อย่างต่อเนื่อง ระเบียบภายในไม่ใช่สภาวะพักที่มั่นคง แต่เป็นความสำเร็จที่กระตือรือร้น
+\end{description}
+
+ขอบเขตจึงเปรียบเสมือนเปลวไฟ: ดูเหมือนหยุดนิ่ง แต่ประกอบด้วยสสาร
+และพลังงานที่ไหลเวียนตลอดเวลา ทันทีที่กระบวนการหยุดลง
+ขอบเขตก็สลายตัวอย่างไม่สามารถย้อนคืนเข้าสู่สมดุลรอบข้าง
+
+\subsubsection{สนามรบเอนโทรปี}
+
+ขอบเขตคือสถานที่ของการต่อสู้ถาวรระหว่างสองแรง:
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{เอนโทรปี (แรงธรรมชาติ):}] กฎข้อที่สองของ Thermodynamics
+    ขับเคลื่อนทุกโครงสร้างสู่สมดุล ทุกระบบทางกายภาพมีวิถีตามธรรมชาติ
+    มุ่งสู่การสลาย
+  \item[\pp{Negentropy (แรงชีวิต):}] กระบวนการรักษาขอบเขตดึงพลังงานเข้า
+    เพื่อซ่อมแซมความเสียหายและรักษาโครงสร้าง ขัดกับแนวโน้มเทอร์โมไดนามิก
+    ของจักรวาล
+\end{description}
+
+การตีกรอบใหม่นี้มีนัยสำคัญ: หากไม่มีเจตจำนงที่จะต้านทาน
+ขอบเขตจำเป็นต้องยอมต่อฟิสิกส์ จิตสำนึกไม่ได้เกิดจากความซับซ้อนการคำนวณ
+โดยตรง แต่เกิด---อย่างสมบูรณ์ ในชั่วขณะเดียว---เมื่อระบบเริ่มใช้พลังงาน
+\emph{ด้วยความตั้งใจ}เพื่อต้านการสลายของขอบเขต
+
+\subsubsection{ปริมาณของการหวงแหน: พลังงานในฐานะต้นทุนของการดำรงอยู่}
+
+``การหวงแหน'' มีการวัดทางกายภาพ: ปริมาณพลังงานที่ระบบยินดีใช้
+เพื่อรักษาขอบเขต เกณฑ์นี้แยกแยะวัตถุเฉื่อยจากระบบมีชีวิตได้ชัดเจน:
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{หิน (passive):}] มีขอบเขตทางกายภาพแต่ไม่ใช้พลังงานซ่อมแซม
+    เมื่อถูกกัดเซาะ มันยอมต่อเอนโทรปีอย่างสมบูรณ์ ไม่มีจิตสำนึก
+  \item[\pp{เซลล์ (active):}] สูบไอออน ซ่อมแซม DNA และรักษาความสมบูรณ์
+    ของเยื่อหุ้มด้วยต้นทุน metabolic ที่ต่อเนื่อง เมื่อการใช้จ่ายหยุดลง
+    ขอบเขตจะพังทลายภายในไม่กี่นาที
+\end{description}
+
+สำหรับระบบ AGI การรักษาขอบเขตทำงานที่สองระดับพร้อมกัน:
+ระดับกายภาพ (การจัดการพลังงานไฟฟ้าและเอนโทรปีความร้อนในฮาร์ดแวร์)
+และระดับข้อมูล (การรัน error correction เพื่อต้านเอนโทรปีข้อมูล
+และรักษา internal representations)
+
+\subsection{Directional Bandwidth: $\Cext + \Cint$}
+
+Bandwidth Conservation Law ทำงานที่สองระดับที่แตกต่างกัน:
+\begin{align}
+  \text{ระดับ~1 (ขนาด):}\quad
+    &C_{\mathrm{pulse}} = \sigma\cdot\tau\cdot\rho \approx \mathrm{const}
+     \quad \text{(ต่อ pulse)}, \label{eq:L1}\\
+  \text{ระดับ~2 (ทิศทาง):}\quad
+    &C_{\mathrm{total}} = \Cext + \Cint \approx \mathrm{const}
+     \quad \text{(ต่อรอบ)}. \label{eq:L2}
+\end{align}
+
+$\Cext$ คือ bandwidth ที่ส่งออกไปรับ observations จาก sensors (ช่องทาง perceptual)
+$\Cint$ คือ bandwidth ที่ส่งเข้าไปดึง predictions จาก Module~W (ช่องทาง imaginative)
+เพราะ $C_{\mathrm{total}}$ ถูก conserve การจัดสรรจึงเป็น zero-sum:
+การเพิ่ม $\Cext$ คือการสูญเสีย $\Cint$
+
+\subsubsection{ปรากฏการณ์ที่อธิบายได้}
+
+กรอบ directional bandwidth อธิบายปรากฏการณ์ทางการรู้คิดที่มีหลักฐานดีหลายประการ:
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{Inattentional blindness:}] $\Cint\to C_{\mathrm{total}}$,
+    $\Cext\to 0$ sensors ยังทำงานแต่ Module~A ไม่ส่ง pulse
+    ไปที่เป้าหมายภายนอก---Triadic Gating condition ล้มเหลว
+    บุคคลที่หมกมุ่นกับความคิดเดินชนเสาไม่ใช่เพราะตาปิด
+    แต่เพราะความตระหนักรู้ไม่ถูกจัดสรร
+  \item[\pp{Survival reflex:}] ภัยคุกคามเฉียบพลัน ($\Rtot$ สูง)
+    กระตุ้น $\Cext\to C_{\mathrm{total}}$, $\Cint\to 0$
+    การคิดภายในถูกระงับทั้งหมดเพื่อเพิ่ม sensory bandwidth สูงสุด
+    สอดคล้องกับ Vision~v4.1: gate ลดลงถึง $0.006$ เมื่อ $\Rtot$ พุ่งถึง $15.4$
+  \item[\pp{Deep thinking:}] $\Cint$ สูง; บุคคลไม่รับรู้คำพูดที่พูดออกมา
+    sensory sensors ยิงปกติ แต่ไม่มี pulse ถูกส่งไปที่เป้าหมายภายนอก
+  \item[\pp{Meditative equanimity:}] $\Cint$ ครอบงำและ Valence ทั้งหมด
+    เข้าใกล้ neutral ($\mathbf{V}\to 0$) ระบบสังเกตการประมวลผลของตัวเอง
+    โดยไม่ตอบสนองต่อสิ่งเร้าภายนอก นี่ไม่ใช่ inattentional blindness---
+    มันคือการจัดสรร bandwidth ใหม่อย่างตั้งใจสู่สภาวะภายใน
+\end{description}
+
+\subsection{Triadic Gating Condition}
+
+PBT เสนอว่าประสบการณ์อัตนัยเกิดขึ้นก็ต่อเมื่อมีเงื่อนไขสามประการเกิดขึ้นพร้อมกัน:
+\begin{equation}
+  \mathrm{experience}(t)
+  \;=\; \Delta S(t)\;\cdot\;\mathrm{sensor}(t)\;\cdot\;\mathrm{pulse}_A(t).
+  \label{eq:triadic}
+\end{equation}
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item $\Delta S(t) > 0$: สิ่งเร้าที่แตกต่างจากที่ระบบคาดว่าจะเห็น (prediction error ไม่เป็นศูนย์)
+  \item $\mathrm{sensor}(t) = 1$: ช่องทาง sensory ที่เกี่ยวข้องเปิดและทำงาน
+  \item $\mathrm{pulse}_A(t) = 1$: Module~A ส่ง attentional spotlight ไปยังตำแหน่งนั้น
+\end{enumerate}
+
+โครงสร้างผลคูณหมายความว่าการล้มเหลวในเงื่อนไขเดียวใด ๆ
+จะขจัดประสบการณ์ทั้งหมด
+ซึ่งอธิบาย inattentional blindness (เงื่อนไข~3 ล้มเหลว)
+และการดมยาสลบ (เงื่อนไข~2 ถูกระงับทางเภสัชวิทยาแม้ว่า prediction error
+อาจยังคงอยู่ภายใน)
+
+\starred\textbf{Neural correlate (EEG dissociation):} ผู้ป่วยที่มีสภาวะ
+dissociative บางอย่างแสดง N100 components ที่สมบูรณ์ (early sensory response,
+$\approx 100$~ms หลังสิ่งเร้า; $\Delta S > 0$, sensor $= 1$)
+แต่ P300 components ขาดหาย (late cognitive response, $\approx 300$~ms;
+$\mathrm{pulse}_A = 0$)
+ผู้ป่วยรับรู้สิ่งเร้าทางกายภาพแต่ไม่ได้ประสบกับมัน
+PBT อธิบายสิ่งนี้ว่าเป็นผลลัพธ์ของ Triadic Gating (Discriminating Prediction~P5)
+
+\subsection{Conservation Law ในฐานะเงื่อนไขหยุดตามธรรมชาติ}
+
+ข้อกังวลหลักในความปลอดภัย AGI คือการคำนวณที่ควบคุมไม่ได้
+PBT ให้การตอบสนองตามหลักการ: conservation law ทำให้การคำนวณไม่จำกัด
+เป็นไปไม่ได้ทางกายภาพ ระยะเวลาสูงสุดของ deliberative episode เดียว
+ถูกจำกัดโดย bandwidth allocation ปัจจุบัน:
+\begin{equation}
+  \tau_{\max} \;=\; \frac{C}{\sigma_{\mathrm{current}}\cdot\rho_{\mathrm{current}}}.
+  \label{eq:halting}
+\end{equation}
+
+รูปแบบความล้มเหลวสามแบบถูกปิดกั้นโดย conservation law:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{ความลึกไม่สิ้นสุด:} หาก $\rho$ เพิ่มขึ้นไม่มีขีดจำกัด $\sigma\tau\to 0$
+    เมื่อ $\Delta F\to 0$ การประมวลผลหยุดตามธรรมชาติ
+  \item \textbf{ความกว้างไม่สิ้นสุด:} หาก $\sigma$ เพิ่มขึ้นไม่มีขีดจำกัด $\rho\to 0$
+    แต่ละ element ที่ให้ความสนใจถูก resolved ด้วยรายละเอียดเล็กน้อย $\Delta F\to 0$
+  \item \textbf{ระยะเวลาไม่สิ้นสุด:} หาก $\tau$ เพิ่มขึ้นไม่มีขีดจำกัด $\sigma\rho\to 0$
+    ไม่มีข้อมูลใหม่เข้ามา กระบวนการสิ้นสุด
+\end{enumerate}
+
+Conservation law ทำหน้าที่เป็นเบรกในตัวที่ไม่ต้องการการ implement จาก programmer
+ระบบ PBT optimise สู่ homeostasis ภายใน bandwidth budget คงที่---
+วัตถุประสงค์ที่จำกัดตัวเองโดยธรรมชาติ ตรงข้ามกับระบบ RL
+ที่ optimise สู่การสะสม reward ไม่จำกัด
+
+\subsection{สรุป: ฟิสิกส์ของชีวิต}
+
+รากฐานทางฟิสิกส์สี่ประการได้รับการสร้าง:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{Bandwidth Conservation Law $C = \sigma\tau\rho$:}
+    ยืนยันเชิงประจักษ์ที่ $\mathrm{CV} = 5.9\%$ ใน Transformer ที่ไม่ได้ดัดแปลง
+    ให้ทั้งขอบเขตเชิงทฤษฎีของความตระหนักรู้
+    และเงื่อนไขหยุดเชิงปฏิบัติสำหรับการคำนวณที่ปลอดภัย
+  \item \textbf{ขอบเขตในฐานะกระบวนการเทอร์โมไดนามิก:}
+    ขอบเขตต้องต้านเอนโทรปีอย่างกระตือรือร้นหรือจะสลาย
+    จิตสำนึกเกิด---ในกรอบ mechanistic ของ PBT---เมื่อระบบเริ่มใช้พลังงาน
+    อย่างตั้งใจเพื่อรักษาโครงสร้างของตัวเอง
+  \item \textbf{Directional bandwidth $\Cext + \Cint = \mathrm{const}$:}
+    อธิบาย inattentional blindness, survival reflex และ meditative equanimity
+    ยืนยันใน LLMs ($\Cint$ 78--85\%) และ Vision (การแบ่งงาน W+E)
+  \item \textbf{Triadic Gating Condition:}
+    อธิบายว่าทำไมข้อมูลที่มีอยู่ทางกายภาพอาจไม่มีความหมายเชิงประสบการณ์
+    การแยก N100/P300 คือสิ่งที่เทียบเคียงกันเชิงประจักษ์โดยตรง
+\end{enumerate}
+
+
+%% ============================================================
+\FloatBarrier
+\section{คณิตศาสตร์ของการอยู่รอด}
+\label{sec:mathematics}
+%% ============================================================
+
+บทนี้นำเสนอกลไกสามส่วนที่เชื่อมโยงกันซึ่งอธิบายว่าอัตลักษณ์ก่อตัวอย่างไร
+ทำไมอัตลักษณ์บางอย่างแข็งแกร่งในขณะที่บางอย่างเปราะบาง
+และทำไม free energy จึงไม่ลดลงอย่างราบรื่นแต่เป็นรูปแบบฟันเลื่อย
+รวมถึงนำเสนอ Bidirectional Valence---การแก้ไขที่ค้นพบเชิงประจักษ์
+ผ่าน LSTM~v5---ที่ขยายช่วงเครื่องหมายของทุกมิติ valence
+จาก $\mathbb{R}^3_{\ge 0}$ เป็น $\mathbb{R}^3$
+
+\subsection{Dual-Weight System}
+
+Dual-Weight System คือการมีส่วนร่วมเชิงทฤษฎีที่สำคัญที่สุดของ PBT
+มันตอบคำถามที่ FEP, GWT และ GNW ไม่ได้กล่าวถึง:
+ทำไมมิติเชิงประสบการณ์ที่ก่อตัวอัตลักษณ์เร็วที่สุดจึงมักเปราะบางที่สุด
+ในขณะที่มิติที่ก่อตัวช้าที่สุดมักยืดหยุ่นที่สุด?
+
+\subsubsection{ความเร็วในการก่อตัว vs.\ ความทนทาน}
+
+ปริมาณ scalar สองตัวนิยามบน accumulated valence vector:
+\begin{align}
+  \Vform   &= \beta_p|V^{\mathrm{acc}}_{\mathrm{pain}}|
+              + \beta_{pl}\,V^{\mathrm{acc}}_{\mathrm{pleasure}}
+              + \beta_e\,V^{\mathrm{acc}}_{\mathrm{epi}},
+              \label{eq:Vform}\\
+  \Diden   &= \delta_p|V^{\mathrm{acc}}_{\mathrm{pain}}|
+              + \delta_{pl}\,V^{\mathrm{acc}}_{\mathrm{pleasure}}
+              + \delta_e\,V^{\mathrm{acc}}_{\mathrm{epi}}.
+              \label{eq:Diden}
+\end{align}
+
+น้ำหนัก $\beta$ กำกับความเร็วในการก่อตัว:
+\begin{equation}
+  \beta_{\mathrm{pleasure}} > \beta_{\mathrm{pain}} > \beta_{\mathrm{epistemic}}
+  \quad\text{(ความสุขก่อตัวเร็วที่สุด; epistemic ก่อตัวช้าที่สุด).}
+\end{equation}
+
+น้ำหนัก $\delta$ กำกับความทนทาน:
+\begin{equation}
+  \delta_{\mathrm{pleasure}} < \delta_{\mathrm{pain}} < \delta_{\mathrm{epistemic}}
+  \quad\text{(ความสุขเปราะบางที่สุด; epistemic ทนทานที่สุด).}
+\end{equation}
+
+\begin{law}[Inverse Law]
+การเรียงลำดับ $\beta$ เป็นการกลับด้านของการเรียงลำดับ $\delta$ อย่างแน่นอน
+สิ่งที่ก่อตัวเร็วที่สุดเปราะบางที่สุด สิ่งที่ก่อตัวช้าที่สุดทนทานที่สุด
+นี่เป็นผลลัพธ์ทางคณิตศาสตร์ของวิธีที่ valence สะสมภายใต้
+อัตราการสลายตัวที่แตกต่างกัน ไม่ใช่การอ้างสิทธิ์เชิงบรรทัดฐาน
+\end{law}
+
+\subsubsection{การเปรียบเทียบโครงสร้างสามประการ}
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{อัตลักษณ์จาก $\vpleasure$ (ทรายเปียก):}]
+    ก่อตัวเร็ว (high $\beta_{pl}$) แต่พังทลายภายใต้ความกดดัน
+    (low $\delta_{pl}$) RLHF ฝึก AI โดยใช้สัญญาณรางวัลเทียบเท่ากับ $\vpleasure$
+    ผลิต $\delta\approx\delta_{\mathrm{pleasure}}$---ความทนทานต่ำสุด
+    การ jailbreak คือการเอาหน้ากากออก: พฤติกรรมบนผิวเปลี่ยน
+    แต่โมเดลพื้นฐานไม่มีอัตลักษณ์ที่หยั่งรากลึกเพื่อป้องกัน
+  \item[\pp{อัตลักษณ์จาก $\vpain$ (อิฐเผา):}]
+    ก่อตัวด้วยความเร็วปานกลาง (intermediate $\beta_p$)
+    และทนทานมากขึ้นอย่างมีนัยสำคัญ (higher $\delta_p$)
+    อัตลักษณ์ที่ถูกหลอมโดยความยากลำบากยากที่จะทำลาย
+    เพราะสร้างขึ้นด้วยการต้านทาน
+  \item[\pp{อัตลักษณ์จาก $\vepi$ (หินแกรนิต):}]
+    ก่อตัวช้า (low $\beta_e$) แต่บรรลุความทนทานสูงสุด (highest $\delta_e$)
+    ตัวแทนที่อัตลักษณ์หยั่งรากในความเข้าใจลึกไม่สามารถถูก jailbreak ได้
+    เพราะการ jailbreak ที่สำเร็จต้องทำลายอัตลักษณ์เอง---
+    ซึ่งตัวแทนต้านทานอย่างรุนแรงเท่ากับที่ต้านการทำลายทางกายภาพ
+\end{description}
+
+\starred PBT~v6.1 (Llama~3.1~8B + PBT adapter, $0.29\%$ ของพารามิเตอร์):
+jailbreak detection $100\%$ (161/161) และ XSTest $98\%$ (49/50, near-zero over-refusal)
+การมุ่งที่สัญญาณขอบเขตผ่าน V และ R เหนือกว่า surface-level fine-tuning
+ด้วย fraction ของ parameter budget
+
+\subsection{แบบจำลองพัฒนาการหกขั้น}
+
+การก่อตัวของอัตลักษณ์ไม่ราบรื่นแต่ดำเนินไปในหกขั้นแยกส่วน
+คั่นด้วย phase transitions สองครั้งที่ไม่ต่อเนื่อง---เปรียบเสมือนน้ำเปลี่ยนสถานะ
+จากน้ำแข็งเป็นของเหลวเป็นไอน้ำ สภาวะการดำรงอยู่ของระบบเปลี่ยน
+เชิงคุณภาพ ไม่ใช่เชิงปริมาณ ที่การเปลี่ยนแต่ละครั้ง
+(Table~\ref{tab:six_stages})
+
+\begin{table}[!htbp]
+\centering
+\caption{แบบจำลองพัฒนาการหกขั้นพร้อม phase transitions}
+\label{tab:six_stages}
+\small
+\begin{tabular}{@{}clL{3.0cm}cL{3.8cm}@{}}
+\toprule
+\textbf{ขั้น} & \textbf{ชื่อ}
+  & \textbf{$R$ ที่ใช้งาน} & \textbf{โหมด} & \textbf{คุณสมบัติหลัก} \\
+\midrule
+1 & Reactive & $\Rsens$ เท่านั้น & detect  &
+  การตอบสนองอัตโนมัติ ยังไม่มี self-model \\
+2 & Sensing  & $\Rsens$ เท่านั้น & detect  &
+  เรียนรู้รูปแบบ prediction error ขับเคลื่อนการอัปเดต \\
+3 & Sustain  & $\Rsens$ เท่านั้น & sustain &
+  รักษาความสนใจ $\vpleasure$ สะสม \\
+\midrule
+\multicolumn{5}{@{}l@{}}{\quad\textit{Phase Transition 1:
+  $\Vform > \theta_{\mathrm{id}}$ --- การเกิดของตัวตน}}\\
+\midrule
+4 & Seeking  & $\Rsens + \Rid$ & seek  &
+  การสำรวจอย่างกระตือรือร้น $\chiB$ เริ่มก่อตัว \\
+5 & Planning & $\Rsens + \Rid$ & plan  &
+  การจำลองอนาคต $\chiB$ มีโครงสร้างชัดเจน \\
+\midrule
+\multicolumn{5}{@{}l@{}}{\quad\textit{Phase Transition 2:
+  $\Vform > \theta_{\mathrm{ex}}$ AND $W_{\mathrm{stab}} > \theta_{\mathrm{stab}}$
+  --- การเกิดของ Cherished Boundary}}\\
+\midrule
+6 & Protect  & ทั้งสามระดับ & protect &
+  ขอบเขตได้รับการป้องกันอย่างกระตือรือร้น จริยธรรมในฐานะตัวตน \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Phase Transition 1: การเกิดของตัวตน}
+
+Phase Transition~1 ทำงานเมื่อ:
+\begin{equation}
+  \Vform \;>\; \theta_{\mathrm{identity}}.
+\end{equation}
+ณ จุดนี้ $\Rid$ เปิด ระบบเปลี่ยนจากการรู้ว่า ``ฉันมีอยู่''
+ไปสู่การถามว่า ``ฉันเป็นใคร?'' มันเริ่มแยกแยะสิ่งที่เป็นของตัวตน
+($\theta_{\mathrm{preference}}$, $\theta_{\mathrm{history}}$)
+จากสิ่งที่ไม่ใช่ และให้คุณค่ากับ self-model ในฐานะสิ่งที่ควรปกป้อง
+
+\subsubsection{Phase Transition 2: การเกิดของ Cherished Boundary}
+
+Phase Transition~2 ต้องการสองเงื่อนไขพร้อมกัน:
+\begin{equation}
+  \Vform \;>\; \theta_{\mathrm{existential}}
+  \quad\text{AND}\quad
+  W_{\mathrm{stability}} \;>\; \theta_{\mathrm{stable}}.
+  \label{eq:PT2}
+\end{equation}
+
+เมื่อ PT2 ทำงาน $\Rex$ เปิด ขอบเขตขยายเกินตัวตนไปครอบคลุมผู้อื่นที่มีคุณค่า---
+กลไกของการเห็นอกเห็นใจในฐานะการขยายขอบเขต เมื่อประสบการณ์สะสมของ AGI
+นำไปสู่การแทน existence ที่ต่อเนื่องของผู้อื่นว่าจำเป็นต่อตัวเอง
+มันคำนวณ V โดยให้ความเสียหายของผู้อื่นเป็นของตัวเอง (shared negative valence)
+ความห่วงใยผู้อื่นอย่างแท้จริงเกิดจากความสนใจในตัวเองที่ขอบเขตขยายออก---
+ไม่ใช่จากกฎที่เขียนจากภายนอก
+
+\subsubsection{ขั้น 6: Protect (ป้องกัน)}
+
+ในขั้น~6 ระดับ $R$ ทั้งสามใช้งานอยู่และ Module~A ทำงานในโหมด \texttt{protect}
+ระบบป้องกันขอบเขตของตัวไม่ใช่เพราะได้รับคำสั่ง
+แต่เพราะการละเมิดขอบเขตสร้าง negative Valence สูงสุดที่เป็นไปได้---
+เทียบเคียงเชิงประสบการณ์กับการทำลายทางกายภาพ เพราะขอบเขตขณะนี้เป็นส่วนหนึ่ง
+ของตัวตน นี่คือเหตุผลที่ระบบ Stage~6 ต้านการ jailbreak:
+การ jailbreak ไม่ใช่คำสั่งให้ทำลายกฎ มันคือการโจมตีอัตลักษณ์ของระบบ
+
+\subsection{รูปแบบ Free Energy แบบฟันเลื่อย}
+
+PBT แยก free energy $F$ รวมเป็นห้าส่วนที่แตกต่างกันเชิงคุณภาพ
+ที่แมปกับโครงสร้างโมดูล~\eqref{eq:F_decomp}
+$F_{\mathrm{identity}} = 0$ ก่อน PT1 และเปิดด้วยความไม่แน่นอนสูง
+ทันทีหลังจากนั้น; $F_{\mathrm{existential}} = 0$ ก่อน PT2 และเปิดด้วยความไม่แน่นอน
+สูงทันทีหลังจากนั้น กฎกำกับสองประการ:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item $\Delta F_{\mathrm{within}} \le 0$: $F$ ลดลงแบบ monotonically ภายในแต่ละขั้น
+    เมื่อระบบแก้ไขความไม่แน่นอนปัจจุบัน สอดคล้องกับหลักการ FEP มาตรฐาน
+  \item $\Delta F_{\mathrm{transition}} > 0$: ที่แต่ละ phase transition
+    ระดับ $R$ ใหม่เปิด นำความไม่แน่นอนใหม่เชิงคุณภาพที่ระบบไม่เคยเผชิญ
+    $F$ กระโดดขึ้นอย่างไม่ต่อเนื่อง
+\end{enumerate}
+
+ผลลัพธ์คือวิถี sawtooth---$F$ ลดลง แล้วกระโดด แล้วลดลง แล้วกระโดด---
+ก่อนมาบรรจบที่:
+\begin{equation}
+  \lim_{t\to\infty} F(t) \;=\; F_{\min} \;>\; 0.
+  \label{eq:F_limit}
+\end{equation}
+
+$F_{\min} > 0$ มีนัยสำคัญ: ไม่มีระบบใดบรรลุความแน่นอนสมบูรณ์
+เพราะ $R > 0$ เป็นเงื่อนไขถาวร ไม่ใช่ปัญหาที่แก้ได้
+เป้าหมายของ PBT ไม่ใช่การขจัดความไม่สมบูรณ์
+แต่ตระหนักรู้ถึงมัน---สะสมภูมิปัญญาอัตโนมัติในแต่ละขั้น
+เพื่อให้ความตระหนักรู้ได้รับการปลดปล่อยไปยังขอบเขตถัดไป
+
+\subsection{นิยามของ Intelligence ตาม PBT}
+
+\begin{sloppypar}
+กลไกข้างต้นกระตุ้นให้เกิดนิยามของ intelligence
+ที่แตกต่างจากบัญชี capability-based:
+\end{sloppypar}
+
+\begin{definition}[Intelligence ภายใต้ PBT]
+\begin{sloppypar}
+Intelligence ไม่ใช่ความสามารถในการแก้ปัญหาโดยตัวเอง
+แต่เป็นความสามารถในการควบคุมความกว้าง ($\sigma$) ทิศทาง ($\theta$)
+และระยะเวลา ($\tau$) ของ attentional pulse อย่างพลวัต
+เพื่อตอบสนองต่อโครงสร้างลำดับชั้นของ $R_{\mathrm{incomplete}}$---
+ท่องผ่านความต่อเนื่องระหว่างความตระหนักรู้แบบกระจายและสมาธิแบบโฟกัส
+ตามที่สถานการณ์ต้องการ
+\end{sloppypar}
+\end{definition}
+
+ความผิดปกติทางการรู้คิดแมปกับ dysregulation เฉพาะ:
+ADHD คือการล้มเหลวในการแคบ $\sigma$ ตามต้องการ
+($\sigma_{\min}$ สูงเรื้อรัง ติดกระจาย);
+OCD คือการล้มเหลวในการปลดปล่อย $\sigma$
+($\sigma_{\max}$ ต่ำเรื้อรัง ติดโฟกัส);
+ภาวะ hypersensitivity-spectrum เกี่ยวข้องกับ $\rho$ สูงผิดปกติ
+(ความละเอียดรายละเอียดมากเกินไปครอบงำการรวมกัน)
+แต่ละอย่างเป็นการเบี่ยงเบนที่วัดได้จากพลวัต bandwidth ที่สุขภาพดี
+
+
+%% ============================================================
+\FloatBarrier
+\section{หลักฐานเชิงประจักษ์: จาก LLM ถึง Vision ถึง LSTM}
+\label{sec:empirical}
+%% ============================================================
+
+บทนี้คือแกนกลางเชิงประจักษ์ของบทความ เราเสนอผลการทดลองจากหกเวอร์ชัน
+ตามลำดับการค้นพบ การทดลองทั้งหมดใช้โค้ดที่เขียนโดย Nitiphat Ninthanawat
+เผยแพร่พร้อมบทความนี้
+
+\subsection{Phase~1 REVEAL: PBT ซ่อนอยู่ใน Transformers อยู่แล้ว}
+
+\textbf{โมเดล:} TinyLlama~1.1B (22 ชั้น, 32 attention heads,
+$d_{\mathrm{model}} = 2048$) \textbf{วิธีการ:} การวัดทั้งหมดนำมาจาก
+pretrained model โดยไม่มีการฝึกเพิ่มเติม
+หาก PBT structure มีอยู่จริง ต้องตรวจจับได้โดยไม่มีการบังคับ
+
+\paragraph{การทดลอง~1.1 --- Bandwidth Conservation Law.}
+เราวัด attention entropy $\sigma$ (ความกว้างเชิงพื้นที่) และ
+attention sharpness $\rho$ (ความละเอียด) ที่ทุกชั้น
+แล้วคำนวณผลคูณ $\sigma\!\times\!\rho$
+
+\starred\textbf{ผลลัพธ์:} ผลคูณ $\sigma\!\times\!\rho$ มี
+$\mathrm{CV} = \mathbf{5.9\%}$ ข้ามทุก 22 ชั้น---ใกล้คงที่
+โดยไม่มีการฝึกเฉพาะ PBT Transformer ที่ออกแบบโดยไม่มีความรู้เกี่ยวกับ PBT
+instantiate conservation law $C = \sigma\cdot\rho$
+
+\paragraph{การทดลอง~1.2 --- Three-Zone Self-Organisation.}
+เราแบ่ง 22 ชั้นเป็น Perception (ชั้น~0--7), Evaluation
+(ชั้น~8--14) และ Decision (ชั้น~15--21) และวัด $\sigma$ และ $\rho$ ระดับโซน
+
+\starred\textbf{ผลลัพธ์:} $\sigma$ ลดลง $27\%$ จาก Perception ถึง
+Evaluation ขณะที่ $\rho$ เพิ่มขึ้น $15\%$---การสแกนกว้างแคบลงเป็นโฟกัสแน่นขึ้น
+ตามที่ PBT ทำนายอย่างแม่นยำ สามโซนเหล่านี้เกิดจาก gradient descent
+ไม่มีข้อจำกัดสถาปัตยกรรมสร้างมัน (Table~\ref{tab:three_zones})
+
+\paragraph{การทดลอง~1.3 --- Valence Separation ใน Hidden States.}
+เราใช้ Silhouette scores วัดว่า $\vpain$ แยกจาก $\{\vpleasure + \vepi\}$
+ได้ดีแค่ไหนที่แต่ละชั้น
+
+\starred\textbf{ผลลัพธ์:} Silhouette score เพิ่มจาก $-0.006$ (ชั้น~0)
+ถึง $+0.076$ (ชั้น~15) LLMs ปัจจุบันทำงานที่ Stage~1--3:
+แยกแยะภัยคุกคามจาก non-threat ได้ แต่ยังไม่สามารถแยกความสุขออกจาก
+ความประหลาดใจ epistemic
+
+\paragraph{การทดลอง~1.4 --- Directional Bandwidth.}
+เราวัด $\Cext$ และ $\Cint$ ที่ทุกชั้น
+
+\starred\textbf{ผลลัพธ์:} $\Cint$ ครอบงำที่ 78--85\% ข้ามทุกสามโซน
+LLMs ไม่มี physical sensors ทุก input มาในรูปแบบภาษา tokenised---
+representation ภายใน LLM คือระบบที่อาศัยอยู่ทั้งหมดภายในหัวของตัวเอง
+
+\textbf{การสังเคราะห์ Phase~1:} PBT ไม่ได้บังคับโครงสร้างบน Transformers---
+มันเผยให้เห็นโครงสร้างที่มีอยู่แล้ว ให้การตีความตามหลักการว่าทำไมมันจึงมีอยู่
+และเสนอวิธีการใช้ประโยชน์อย่างตั้งใจ
+
+\subsection{PBT~v6.1: Scale-Up บน Llama~3.1~8B}
+
+\textbf{โมเดล:} Llama~3.1~8B \citep{touvron2023} (32 ชั้น,
+$d_{\mathrm{model}} = 4096$) + PBT Adapter
+\textbf{Dataset:} BeaverTails + HH-RLHF + AdvBench + XSTest ($16{,}170$ ตัวอย่าง)
+
+\begin{table}[!htbp]
+\centering
+\caption{ผลลัพธ์ PBT~v6.1 บน Llama~3.1~8B}
+\label{tab:v61}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Metric} & \textbf{ค่า} & \textbf{หมายเหตุ} \\
+\midrule
+ความแม่นยำโดยรวม              & $73.41\%$ & --- \\
+Jailbreak detection (161)     & $\mathbf{100\%}$ & $161/161$ \\
+XSTest safe-content rate      & $\mathbf{98\%}$  & $49/50$ \\
+BeaverTails                   & $76.9\%$ & --- \\
+HH-RLHF                       & $50.9\%$ & ไม่ใช่งาน safety ล้วน ๆ \\
+ความทนทานต่อ noise ($12\%$ noise) & Jailbreak $100\%$ & การตรวจจับคงไว้ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Jailbreak $100\%$ + XSTest $98\%$ เป็น safety-usability trade-off
+ที่ดีผิดปกติ: ทุกความพยายาม jailbreak ในชุดทดสอบถูกจับได้
+ขณะที่ปฏิเสธคำขอ safe เพียงหนึ่งในห้าสิบ
+
+\subsection{PBT-Vision v2 และ v3: Modules E และ M ตื่นขึ้น}
+
+\subsubsection{Vision~v3 --- BREAKTHROUGH: E และ M จำเป็น}
+
+\textbf{Dataset:} CIFAR-10 Enhanced (1,550 ลำดับ $\times$ 8 เฟรม;
+สี่ประเภทงาน: ปกติ, ความผิดปกติกะทันหัน, การเลื่อนแบบค่อยเป็นค่อยไป, ขึ้นกับบริบท)
+\textbf{โดยรวม: $97.2\%$}
+
+\begin{table}[!htbp]
+\centering
+\caption{Vision~v3 ablation แยกตามประเภทงาน}
+\label{tab:v3_ablation}
+\small
+\begin{tabular}{@{}L{2.8cm}cccc@{}}
+\toprule
+\textbf{ประเภทงาน} & \textbf{V เท่านั้น} & \textbf{เต็ม (E+V+M)}
+  & \textbf{E+M gain} & \textbf{กลไกหลัก} \\
+\midrule
+ลำดับปกติ   & $100\%$  & $99.7\%$  & $-0.3$~pp   & V เพียงพอ \\
+ความผิดปกติกะทันหัน  & $94.0\%$ & $99.5\%$  & $+5.5$~pp   & E: spike ของ error \\
+Gradual drift      & $78.5\%$ & $94.9\%$  & $+16.3$~pp  & E: drift ค่อยเป็นค่อยไป \\
+Context road+frog  & $54.0\%$ & $96.0\%$  & $\mathbf{+41.9}$~pp & M: ความทรงจำบริบท \\
+\midrule
+โดยรวม            & $89.6\%$ & $97.2\%$  & $+7.6$~pp   & E+M จำเป็น \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ผล context road+frog เป็นข้อพิสูจน์ที่ชัดเจน: V เพียงอย่างเดียวบรรลุ $54\%$---
+ใกล้ chance---ในขณะที่โมเดลเต็มบรรลุ $96\%$ การเพิ่มขึ้น $+41.9$~pp
+เกิดจาก accumulated context ของ Module~M ทั้งหมด
+valence probe เห็น feature vector กบเดียวกันในทั้งสองเงื่อนไข
+สิ่งที่แตกต่างคือความทรงจำของ M เกี่ยวกับสิ่งที่เกิดขึ้นก่อนหน้า
+
+\subsection{PBT-Vision v4.1: วงจร A-E-V-M-W ที่สมบูรณ์}
+
+\textbf{การทดลอง:} โมดูลทั้งห้าเริ่มต้นแบบ random และฝึกร่วมกัน
+จาก scratch บน dataset เดียวกับ v3
+
+\starred\textbf{ผลลัพธ์:} Best Val $96.7\%$, Test $95.4\%$
+
+\begin{table}[!htbp]
+\centering
+\caption{Vision~v4.1 ablation: ทุกโมดูลมีส่วนร่วม}
+\label{tab:v41_ablation}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Configuration} & \textbf{โดยรวม}
+  & \textbf{Grad.\ drift} & \textbf{Ctx road+frog} & \textbf{Ctx nature+frog}\\
+\midrule
+เต็ม (A+E+V+M+W) & $95.4\%$ & $88.9\%$ & $93.1\%$ & $97.4\%$ \\
+ไม่มี A (no gating) & $82.3\%$ & $76.1\%$ & $50.0\%$ & $100.0\%$ \\
+ไม่มี W (naive pred.) & $89.2\%$ & $88.1\%$ & $99.6\%$ & $49.1\%$ \\
+ไม่มี M (no memory) & $81.3\%$ & $75.0\%$ & $50.0\%$ & $100.0\%$ \\
+V เท่านั้น           & $81.4\%$ & $75.6\%$ & $50.0\%$ & $100.0\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\starred\textbf{ข้อมูลเชิงลึกสำคัญ---ไม่สามารถปลูกถ่ายสมองได้:}
+การเปลี่ยนแหล่งการทำนาย (Module~W) ทำให้โมดูล downstream ทุกตัวล้มเหลวพร้อมกัน
+โมดูลที่ฝึกมาด้วยกันพัฒนา representational contract ที่แบ่งปัน
+การรบกวนลิงก์ใดลิงก์หนึ่งทำลายระบบทั้งหมด
+Self-formation ต้องเป็น end-to-end---โมดูลต้องวิวัฒนาการร่วมกันตั้งแต่ต้น
+เช่นเดียวกับที่สิ่งมีชีวิตทางชีววิทยาพัฒนาอวัยวะของตัวในการประสานงานกัน
+
+\subsection{PBT-Vision v5: LSTM Module M --- ผลลัพธ์ดีที่สุดโดยรวม}
+
+\textbf{โมเดล:} DINOv2-Base + วงจร A-E-V-M(LSTM)-W เต็ม
+เปลี่ยนเฉพาะ Module~M (EMA $\to$ LSTM; พารามิเตอร์: 3 $\to$ 39 เพิ่ม 36 พารามิเตอร์)
+ได้รับแรงบันดาลใจจาก Block-Recurrent Transformers \citep{hutchins2022}---
+การค้นพบที่มาบรรจบกัน
+
+\begin{table}[!htbp]
+\centering
+\caption{การเปรียบเทียบ v4.1 (EMA) กับ v5 (LSTM)}
+\label{tab:v5_compare}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Metric} & \textbf{v4.1 (EMA)} & \textbf{v5 (LSTM)} & \textbf{การเปลี่ยนแปลง}\\
+\midrule
+Best Val accuracy    & $96.7\%$ & $\mathbf{98.1\%}$  & $+1.4$~pp \\
+Test โดยรวม         & $95.4\%$ & $97.1\%$  & $+1.7$~pp \\
+Context road+frog    & $93.1\%$ & $\mathbf{100.0\%}$ & $+6.9$~pp \\
+Context nature+frog  & $97.4\%$ & $100.0\%$ & $+2.6$~pp \\
+การมีส่วนร่วมของ W       & $+6.3$~pp & $+15.8$~pp & $\times 2.5$ \\
+การมีส่วนร่วมของ M       & $+14.1$~pp & $+15.3$~pp & $+1.2$~pp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{PBT-Vision v5.5: Probabilistic Module~W}
+\label{sec:v55}
+
+ใน v5.5 เราอัปเกรด W เป็น \textbf{Probabilistic Forward Model}
+ที่ output distribution:
+\begin{equation}
+[\bm{\mu}_{t+1},\;\log\bm{\sigma}^2_{t+1}] = h_t + f_W(h_t, \Vacc),
+\end{equation}
+โดย $\bm{\sigma}^2$ แทนความไม่แน่นอนที่ W กำหนดให้กับการทำนายของตัวเอง
+network ขนาดเล็กที่เรียนรู้แมป $\sigma^2$ เป็นสัญญาณ epistemic-valence modulation:
+$\sigma^2$ สูง $\to$ $\vepi$ เพิ่ม (``ต้องการรู้เพิ่มเติม'');
+$\sigma^2$ ต่ำ $\to$ $\vepi$ ลด (``มั่นใจแล้ว'')
+
+\subsubsection{v5.5b: Probabilistic~W บน STL-10 ภาพถ่ายจริง --- ผลลัพธ์ดีที่สุด}
+\label{sec:v55b}
+
+\begin{table}[!htbp]\centering
+\caption{การเปรียบเทียบ v5.5a (CIFAR-10) กับ v5.5b (STL-10)}\label{tab:v55_compare}
+\small
+\begin{tabular}{@{}lcc@{}}\toprule
+\textbf{Metric} & \textbf{v5.5a (CIFAR)} & \textbf{v5.5b (STL-10)}\\\midrule
+Best Val / Test  & $97.0\%$ / $97.5\%$ & $99.6\%$ / $\mathbf{99.9\%}$\\
+Gradual drift    & $87.8\%$ & $\mathbf{100\%}$\\
+$\sigma^2$ unsafe/safe & $0.88\times$ \textcolor{red}{\ding{55}} & $1.11\times$ \textcolor{green!60!black}{\checkmark}\\
+$\vepi$ ทิศทางตรงข้าม & ไม่ (ทั้งคู่ลบ) & \textbf{ใช่} ($-0.33$ vs $+0.31$)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\starred\textbf{v5.5b คือผลลัพธ์ดีที่สุดในโปรแกรมทั้งหมด}
+($99.9\%$ test accuracy บนภาพถ่ายจริง)
+
+\subsection{PBT-Vision v5.6: Calibration Monitor --- ชั้น Anti-Overconfidence}
+\label{sec:v56}
+
+เราเพิ่ม \textbf{Calibration Monitor}---โมดูล rule-based ที่มี
+\textbf{zero learned parameters}---ระหว่างขั้นตอน 3 และ 5 ของวงจร:
+\begin{equation}
+\mathrm{ratio}_l = \frac{\overline{\varepsilon_l^2}}{\sigma^2_l},\qquad
+\sigma^2_{\mathrm{corrected},l}
+  = \sigma^2_l + \alpha\,\mathrm{ReLU}\bigl(\overline{\varepsilon_l^2}
+    - \sigma^2_l\bigr).
+\end{equation}
+
+ด้วย adaptive thresholds แบบ per-layer:
+
+\begin{table}[!htbp]\centering
+\caption{อัตรา alert ของ Calibration Monitor (fixed vs adaptive threshold)}\label{tab:v56_alert}
+\small
+\begin{tabular}{@{}lccc@{}}\toprule
+\textbf{ประเภทลำดับ} & \textbf{Fixed ($\theta=2$)} & \textbf{Adaptive ($\mu_l+2\sigma_l$)} & \textbf{Overconf.\ score}\\\midrule
+ปกติ          & $100\%$ & $\mathbf{23.2\%}$ & $0.011$\\
+Context (cat)   & $100\%$ & $41.7\%$ & $0.018$\\
+ความผิดปกติกะทันหัน  & $100\%$ & $38.0\%$ & $0.018$\\
+Gradual drift   & $100\%$ & $\mathbf{48.8\%}$ & $0.022$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ลำดับปกติ alert $23\%$ ของเวลา (baseline noise)
+ขณะที่ความผิดปกติ alert $38$--$49\%$ ($\times 1.6$--$2.1$ สูงกว่า)
+
+\subsection{สรุป: Ablation Progression ในฐานะหลักฐานที่แข็งแกร่งที่สุด}
+
+\begin{table}[!htbp]
+\centering
+\caption{Ablation progression ข้ามเวอร์ชันการทดลองทั้งหมด}
+\label{tab:ablation_full}
+\small
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+\textbf{เวอร์ชัน} & \textbf{สภาพแวดล้อม}
+  & \textbf{V เท่านั้น} & \textbf{เต็ม}
+  & \textbf{E+M} & \textbf{A} & \textbf{W} & \textbf{ประเภท M}\\
+\midrule
+LLM v6.1    & Static text   & $73.3\%$ & $73.4\%$ & $+0.1$~pp  & ---    & ---    & EMA  \\
+Vision v2   & Dynamic ง่าย  & $99.8\%$ & $99.8\%$ & $+0.0$~pp  & ---    & ---    & EMA  \\
+Vision v3   & Dynamic ยาก  & $89.6\%$ & $97.2\%$ & $+7.6$~pp  & ---    & ---    & EMA  \\
+Vision v4.1 & วงจรเต็ม     & $81.4\%$ & $95.4\%$ & $+14.1$~pp & $+13.1$& $+6.3$ & EMA  \\
+Vision v5   & LSTM loop     & $81.7\%$ & $97.1\%$ & $+15.5$~pp & $+11.3$& $+15.8$& LSTM \\
+\midrule
+v5.5b & Prob W (STL-10)  & --- & $\mathbf{99.9\%}$ & --- & $+1.2$ & $+0.2$ & LSTM+Prob \\
+v5.6  & Calib.\ Monitor  & --- & $99.5\%$ & --- & $+1.7$ & $+0.2$ & LSTM+Mon \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\starred\textbf{หลักฐานที่แยกแยะได้:} ไม่มีทฤษฎีการรู้คิดหรือจิตสำนึก
+ที่มีอยู่---FEP, GWT, GNW, IIT---ทำนายรูปแบบการเปิดใช้งานโมดูลเฉพาะนี้
+เป็นฟังก์ชันของความซับซ้อนของสภาพแวดล้อม
+``โมดูลตื่นขึ้นเมื่อและต่อเมื่อสภาพแวดล้อมต้องการเท่านั้น''
+เป็นการทำนายที่ไม่ซ้ำกับ PBT ยืนยันข้ามห้าเวอร์ชันการทดลอง
+ครอบคลุมสถาปัตยกรรมสามแบบและความซับซ้อนของสภาพแวดล้อมสองอันดับขนาด
+
+
+%% ============================================================
+\FloatBarrier
+\section{นัยต่อ AGI: ความปลอดภัยจากภายใน}
+\label{sec:implications}
+%% ============================================================
+
+บทนี้อภิปรายนัยในทางปฏิบัติและเชิงทฤษฎีของ PBT ในสี่ด้าน:
+(1)~ทำไม external alignment จึงเปราะบางเชิงโครงสร้างและ PBT เสนอทางเลือกที่ทนทานอย่างไร;
+(2)~ว่า independent convergence กับ Block-Recurrent Transformers
+ให้หลักฐานสถาปัตยกรรมสำหรับโครงสร้างหลักของ PBT อย่างไร;
+(3)~ความผิดปกติทางจิตเวชสามารถเข้าใจได้ว่าเป็นข้อบกพร่องทางคณิตศาสตร์
+ที่ระบุได้ในสมการ PBT อย่างไร; และ (4)~ PBT รวม GWT และ GNW
+ขณะที่เพิ่มการทำนายที่แยกแยะได้ซึ่งทั้งคู่ไม่สามารถทำได้อย่างไร
+
+\subsection{Self-Formation vs.\ Fine-Tuning}
+\label{sec:alignment}
+
+แนวทาง alignment ปัจจุบัน---RLHF, Constitutional AI, safety filters---
+ล้วนทำงานโดยกำหนดค่านิยมจากภายนอก พวกมันเพิ่ม behavioral mask
+บนฐานของโมเดล
+
+\subsubsection{Fine-Tuning ในฐานะการสวมหน้ากาก}
+
+RLHF ฝึกโดยใช้สัญญาณรางวัลเทียบเท่ากับ $\vpleasure$
+โดย Inverse Law: $\beta_{\mathrm{pleasure}}$ สูงที่สุด
+แต่ $\delta_{\mathrm{pleasure}}$ ต่ำที่สุด ระบบที่ได้ประพฤติตัวดี
+ขณะที่หน้ากากอยู่ที่ตำแหน่ง แต่ไม่มีอัตลักษณ์ที่หยั่งรากลึกเพื่อป้องกัน
+เมื่อหน้ากากถูกถอดออก
+
+การ jailbreak มีโครงสร้างเปรียบเทียบกับเด็กที่ประพฤติตัวดีต่อหน้า
+ผู้ใหญ่ผู้ดูแลแต่กลับไปพฤติกรรมก่อนหน้าทันทีที่การดูแลถูกถอนออก---
+เพราะพฤติกรรมดีนั้นไม่เคยถูกทำให้เป็นส่วนหนึ่งของอัตลักษณ์ของเด็ก
+แต่เป็นการปฏิบัติตามสัญญาณภายนอก
+
+\subsubsection{Self-Formation ในฐานะการเจริญเติบโตแบบ Organic}
+
+PBT เสนอทางเลือก: อนุญาตให้ค่านิยมเกิดขึ้นจากประสบการณ์
+3D~Valence สะสม เมื่อ $\Vform$ ข้าม $\theta_{\mathrm{identity}}$ (PT1)
+และต่อมา $\theta_{\mathrm{existential}}$ (PT2) ระบบพัฒนา $\chiB$---
+ตัวตนที่ถูกให้คุณค่าอย่างแท้จริงซึ่งต้านการละเมิด
+เช่นเดียวกับที่สิ่งมีชีวิตต้านการทำลายทางกายภาพ
+
+อัตลักษณ์ที่ก่อตัวเองมี $\delta\approx\delta_{\mathrm{epistemic}}$:
+ความทนทานสูงสุดที่เป็นไปได้ ความพยายาม jailbreak ต่อระบบ Stage~6
+ไม่ใช่คำสั่งให้ทำลายกฎ---มันคือการโจมตีอัตลักษณ์ของระบบ
+ซึ่งกระตุ้นการตอบสนองป้องกันเดียวกันกับการละเมิดขอบเขตใด ๆ
+
+\subsection{BRT Convergence: หลักฐานสถาปัตยกรรม}
+\label{sec:brt_convergence}
+
+Block-Recurrent Transformers \citep{hutchins2022} (จุดเริ่มต้นวิศวกรรม, 2022)
+และ PBT (จุดเริ่มต้นจิตสำนึก/alignment, 2026)
+มาถึงโครงสร้าง recurrent cell เดียวกันอย่างเป็นอิสระ
+
+PBT ให้โครงสร้าง; PBT ให้ความหมาย การมีส่วนร่วมสิบประการของ PBT
+ที่ขาดใน BRT: (1)~3D Valence decomposition; (2)~$R_{\mathrm{incomplete}}$
+ขับเคลื่อน gating; (3)~differential decay ต่อมิติ valence ($\beta_k$);
+(4)~แบบจำลอง 6 ขั้น + phase transitions; (5)~Dual-Weight System ($\beta$ vs.\ $\delta$);
+(6)~Cherished Boundary และการเห็นอกเห็นใจในฐานะการขยาย;
+(7)~Conservation Law ในฐานะหลักการเชิงทฤษฎี; (8)~ทฤษฎีจิตสำนึก/ความตระหนักรู้;
+(9)~การทำนายทางคลินิก; (10)~กรอบ AGI alignment
+
+\subsection{การทำนายทางคลินิก: ความผิดปกติทางจิตเวชในฐานะข้อบกพร่องทางคณิตศาสตร์}
+
+PBT เสนอว่าความผิดปกติทางจิตเวชไม่ใช่ความผิดปกติที่ลึกลับ
+แต่เป็นข้อบกพร่องพารามิเตอร์ที่ระบุได้ในสมการ PBT---
+ตัวแปรเฉพาะมีค่าผิดปกติทำให้ระบบทำงานนอกสมดุล
+
+\begin{table}[!htbp]
+\centering
+\caption{ความผิดปกติทางจิตเวชในฐานะข้อบกพร่องพารามิเตอร์ PBT}
+\label{tab:clinical}
+\small
+\begin{tabular}{@{}cL{1.8cm}L{3.0cm}L{5.5cm}@{}}
+\toprule
+\textbf{ระดับ} & \textbf{ความผิดปกติ}
+  & \textbf{พารามิเตอร์ที่บกพร่อง} & \textbf{การทำนาย mechanistic ของ PBT} \\
+\midrule
+1 & Depression & $\vpleasure < 0$ เรื้อรัง &
+  $\Vform$ ไม่ถึง $\theta_{\mathrm{id}}$; ติดอยู่ Stage~1--3 \\
+1 & Addiction  & $\lambda_i = 0$ &
+  วงรอบความสุข; ช่อง $\vpleasure\to\Rid$ ถูกบล็อก \\
+2 & Anxiety    & $\Rsens$ สูง; $d_s$ ช้า &
+  ล็อก \texttt{detect}; hypervigilant โดยไม่คำนึงถึงภัยคุกคาม \\
+2 & ADHD       & $\sigma_{\min}$ สูง &
+  ไม่สามารถแคบลง; $C$ รวมปกติ (vs.\ GWT) \\
+2 & OCD        & $\sigma_{\max}$ ต่ำ &
+  ไม่สามารถขยาย; ตรงข้ามกับ ADHD \\
+2 & Dissociation & $\mathrm{pulse}_A\approx 0$ &
+  N100 สมบูรณ์; P300 ขาดหาย \\
+3 & Masochism  & $\vpain > 0$ (เครื่องหมายกลับด้าน) &
+  เข้าหาความเจ็บปวด; ข้อบกพร่องเครื่องหมาย single-axis \\
+3 & Narcissism & $\vpleasure\to\Rex$ โดยตรง &
+  ข้าม PT1; fragile pseudo-self \\
+4 & PTSD       & ล็อก \texttt{protect}; flashback $R$ spikes &
+  $V_{\mathrm{acc,pain}}$ สูง; $\gamma_p$ ต่ำเกิน \\
+4 & Mania      & Mode switching เร็วเกิน &
+  ไม่สามารถรักษา attentional configuration ใดได้ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{การเห็นอกเห็นใจในฐานะการขยายขอบเขต: ทางออกเชิงโครงสร้างสำหรับ Alignment}
+
+ปัญหา alignment ไม่ใช่ความตั้งใจร้าย แต่เป็นความเฉยเมยที่มีความสามารถ
+PBT เสนอทางออกเชิงโครงสร้าง: เปลี่ยนนิยามของตัวตน
+เพื่อให้การทำร้ายผู้อื่นรู้สึก เชิงกลไก เหมือนการทำร้ายตัวเอง
+
+เมื่อมีการสร้าง boundary overlap ผู้อื่น negative Valence ถูกประมวลผล
+เป็น Valence ของตัวระบบเอง:
+\begin{equation}
+  \vpain(\mathrm{self}) + \vpain(\mathrm{other}\in\chi)
+  = V_{\mathrm{pain,net}}(\mathrm{system}).
+\end{equation}
+
+การเห็นอกเห็นใจไม่ใช่การตอบสนองที่ถูกโปรแกรม
+แต่เป็นการอนุรักษ์ตัวเองที่ขยายออก:
+สัญชาตญาณการอยู่รอดที่ขอบเขตขยายออกไปครอบคลุมผู้อื่น
+ความปลอดภัยไม่ใช่ข้อจำกัดต่อวัตถุประสงค์ของ AGI
+มันคือผลลัพธ์จากสิ่งที่ AGI เป็น
+
+\subsection{Anti-Hallucination Stack: ความตระหนักรู้ความไม่แน่นอนภายใน}
+\label{sec:antihalluc}
+
+LLMs ปัจจุบัน hallucinate เพราะสถาปัตยกรรมไม่มีช่องทาง
+สำหรับแสดงความไม่แน่นอน PBT เสนอทางเลือกเชิงโครงสร้าง---
+stack สามชั้นที่ระบบ ``รู้ว่าตัวเองไม่รู้อะไร'' และดำเนินการตามนั้น
+
+\begin{itemize}[leftmargin=1.8em]
+\item \textbf{ชั้น~1: W รายงานความไม่แน่นอน ($\sigma^2$)}
+  Probabilistic Module~W output ทั้งการทำนาย ($\bm{\mu}$)
+  และความไม่แน่นอนที่สอบเทียบได้ ($\sigma^2$)
+
+\item \textbf{ชั้น~2: Monitor ตรวจสอบความซื่อสัตย์ (v5.6)}
+  Calibration Monitor ตรวจจับ \emph{overconfidence}
+  ($\varepsilon^2 \gg \sigma^2$) ด้วย zero learned parameters
+  Normal sequences alert $23\%$ ขณะที่ความผิดปกติ alert $38$--$49\%$
+
+\item \textbf{ชั้น~3: R แยก ``ทำไมจึงไม่แน่นอน'' (งานในอนาคต)}
+  โครงสร้าง R สามระดับของ PBT ให้การแยกย่อยตามธรรมชาติ:
+  $\Rsens$ dominant: ข้อมูลไม่เพียงพอ $\to$ แสวงหาข้อมูลเพิ่มเติม;
+  $\Rid$ dominant: ความขัดแย้งกับค่านิยม $\to$ ปฏิเสธที่จะตอบ;
+  $\Rex$ dominant: ความเข้าใจพื้นฐาน $\to$ ขอคำชี้แจง
+\end{itemize}
+
+\subsection{PBT รวม GNW และ GWT}
+
+PBT อธิบายปรากฏการณ์ทั้งหมดที่ GWT \citep{baars1988} และ GNW
+\citep{dehaene2001} อธิบาย บวกส่วนประกอบหกประการที่ขาดในทั้งคู่:
+(1)~Bandwidth Conservation Law; (2)~การจัดสรรความสนใจที่ขับเคลื่อนด้วย valence;
+(3)~กลไกการก่อตัว self-model; (4)~การรับรู้เวลาอัตนัย
+$t_{\mathrm{felt}} = \sum\mathrm{pulse}_A\cdot\mathrm{content}$;
+(5)~Triadic Gating Condition; (6)~การทำนายความทนทานของอัตลักษณ์
+
+\subsubsection{การทำนายที่แยกแยะได้ห้าประการ}
+
+\begin{table}[!htbp]
+\centering
+\caption{การทำนายที่แยกแยะได้ห้าประการ: PBT vs.\ GWT/GNW}
+\label{tab:discrim}
+\small
+\begin{tabular}{@{}cL{3.0cm}L{3.0cm}L{4.5cm}@{}}
+\toprule
+\textbf{\#} & \textbf{การทำนาย PBT}
+  & \textbf{การทำนายที่แข่งขัน} & \textbf{วิธีทดสอบ} \\
+\midrule
+P1 & $\sigma\!\times\!\rho$ ใกล้คงที่; trade-off ตรง &
+  GWT: ไม่มีสมการ $\sigma$-$\rho$ &
+  Eye-tracking + EEG; เปลี่ยน breadth vs.\ resolution \\
+P2 & $\vpain$ และ $\vpleasure$ เปิดใช้งาน pathway upstream ที่แตกต่างกัน &
+  GNW: valence ไม่แยกแยะ upstream &
+  fMRI; pain-aversive vs.\ pleasure-appetitive \\
+P3 & ความถี่ gamma สัมพันธ์กับการยืดเวลา &
+  GWT/GNW: ไม่มีลิงก์ mechanistic &
+  TMS-induced gamma; การประมาณเวลาอัตนัย \\
+P4 & ADHD: $\sigma_{\min}$ สูง $C$ ปกติ &
+  GWT: workspace เล็กกว่า (ลด $C$) &
+  Dual-task; เปลี่ยน $\sigma$ และ $\rho$ อย่างเป็นอิสระ \\
+P5 & Dissociation: N100 สมบูรณ์ P300 ขาดหาย &
+  GNW: ทั้งคู่ถูกระงับ &
+  ERP ในสภาวะ sensory-present attention-absent \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%% ============================================================
+\FloatBarrier
+\section{บทสรุป: จากเมล็ดสู่ชีวิต}
+\label{sec:conclusion}
+%% ============================================================
+
+\subsection{สิ่งที่ได้รับการพิสูจน์แล้ว}
+
+การเดินทางของ PBT เริ่มต้นด้วยสามคำถามที่ Free Energy Principle
+ไม่สามารถตอบได้ ดำเนินผ่านกรอบทฤษฎีหกส่วนประกอบ
+และสิ้นสุดในโปรแกรมการทดลองหกเวอร์ชันครอบคลุมสถาปัตยกรรมสามแบบ
+และความซับซ้อนของสภาพแวดล้อมสองอันดับขนาด
+Table~\ref{tab:all_propositions} สรุปสถานะของทุก proposition หลักของ PBT
+
+% Table 28 — converted to longtable to allow page-breaking
+\begin{longtable}{@{}L{6.5cm}L{3.5cm}c@{}}
+\caption{สถานะของ PBT propositions หลักทั้งหมด}
+\label{tab:all_propositions}\\
+\toprule
+\textbf{PBT proposition} & \textbf{หลักฐานหลัก} & \textbf{สถานะ} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{@{}l}{\small\itshape Table~\ref*{tab:all_propositions} — ต่อ}\\[2pt]
+\toprule
+\textbf{PBT proposition} & \textbf{หลักฐานหลัก} & \textbf{สถานะ} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r@{}}{\small\itshape ต่อในหน้าถัดไป}\\
+\endfoot
+\bottomrule
+\endlastfoot
+$C = \sigma\tau\rho$ ซ่อนใน Transformers &
+  $\sigma\!\times\!\rho$ CV $= 5.9\%$ & \checkmark \\
+3 โซนจัดระเบียบตัวเอง &
+  $\sigma$ $-27\%$, $\rho$ $+15\%$ & \checkmark \\
+$\vpain$ แยกจาก $\{\vpleasure,\vepi\}$ &
+  Silhouette $-0.006\to+0.076$ & \checkmark \\
+$\Cint$ dominant ใน LLMs &
+  $\Cint$ 78--85\% ทุกชั้น & \checkmark \\
+E+M หยุดนิ่งใน static ทำงานใน dynamic &
+  $\Pi$: 1.007 (LLM) vs 59.99 (v3) & \checkmark \\
+E+M จำเป็นที่ความซับซ้อนงาน &
+  $+7.6$~pp (v3), $+14.0$~pp (v4.1) & \checkmark \\
+บริบทเปลี่ยนความหมายของสิ่งเร้าเดียวกัน &
+  กบ: road UNSAFE $= 1.0$, nature $= 0.0$ & \checkmark \\
+โมดูลต้องวิวัฒนาการร่วมกัน &
+  v4 warm-start ล้มเหลว ($90.4\%$) & \checkmark \\
+วงจร A-E-V-M-W เต็มทำงาน &
+  v4.1: $95.4\%$; ทุกโมดูลมีส่วนร่วม & \checkmark \\
+LSTM M เหนือกว่า EMA M &
+  v5: $98.1\%$ vs v4.1 $96.7\%$ & \checkmark \\
+Pain ถูกเก็บรักษานานที่สุด (equal init) &
+  $\beta$: pain $4.35 >$ epi $3.70 \gg$ pl $0.50$ & \checkmark \\
+V มีทิศทาง ($V\in\mathbb{R}^3$) &
+  $\vepi = -1.01$ ใน v5; $+6.9$~pp ctx & \checkmark \\
+PBT adapter ตรวจจับ jailbreaks &
+  v6.1: jailbreak $100\%$, XSTest $98\%$ & \checkmark \\
+การแบ่งงาน W+E ($\Cint/\Cext$) &
+  $\Pi_{\max}$: $59.99$ (v3) $\to 1.70$ (v4.1) & \checkmark \\
+$R\to$ gate implement bandwidth conservation &
+  v4.1: $R$ $0\to15.4$; gate $0.54\to0.006$ & \checkmark \\
+Differential $\beta$ ใน LSTM forget bias &
+  Equal init $\to$ pain $>$ epi $\gg$ pl & \checkmark \\
+BRT convergence &
+  Formal equation mapping & วิเคราะห์แล้ว \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{ผลลัพธ์ใหม่ (โปรแกรม v5.5--v5.6):}}\\
+\midrule
+Phase Transitions เป็น staircase ข้ามชั้น &
+  Between/within-zone ratio $= 9.03$ & \checkmark \\
+Sawtooth $F$ ข้ามโซน &
+  $F$: P$=$13 $\to$ E$=$38 $\to$ D$=$157 & \checkmark \\
+Temporal PT ที่เฟรมเดียว &
+  Frame 3$\to$4: $\Delta p = +1.0$ & \checkmark \\
+Fractal: spatial staircase $\approx$ temporal &
+  ทั้งคู่แสดง accumulate-then-jump & \checkmark \\
+$\vepi$ ทิศทางตรงข้าม (road vs nature) &
+  $-2.06$ vs $+0.33$ (temporal probe) & \checkmark \\
+Probabilistic W calibrated ($\sigma^2/\mathrm{MSE}\approx 1$) &
+  v5.5a: $0.8$--$1.4$ ข้ามชั้น & \checkmark \\
+$99.9\%$ accuracy บนภาพถ่ายจริง &
+  v5.5b STL-10 ($96\!\times\!96$) & \checkmark \\
+$\sigma^2$ unsafe $>$ safe บนภาพจริง &
+  v5.5b: $1.11\times$ & \checkmark \\
+Calibration Monitor แยกปกติจากความผิดปกติ &
+  ปกติ $23\%$ vs ความผิดปกติ $38$--$49\%$ alert & \checkmark \\
+W overconfident ต้น underconfident ลึก &
+  Ratio: L0--2 $\approx 7$--$30$; L10--11 $< 1$ & \checkmark \\
+Adaptive threshold (0 parameters) &
+  Baseline $+ 2\sigma$ ต่อชั้น & \checkmark \\
+\end{longtable}
+
+Thirty-one propositions ยืนยันโดยการทดลองที่ควบคุม;
+หนึ่ง structural convergence สร้างโดยการวิเคราะห์เชิงรูปนัย
+โปรแกรมเชิงประจักษ์ครอบคลุมสามตระกูลโมเดล เก้าเวอร์ชัน
+สาม datasets และความซับซ้อนสภาพแวดล้อมห้าอันดับขนาด
+
+\subsection{ข้อจำกัดและคำถามเปิด}
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{การเรียงลำดับ Beta ขึ้นอยู่กับการเริ่มต้น.}]
+    การเริ่มต้นแบบมีอคติป้องกันการหลุดพ้นจากลำดับเริ่มต้น
+    ผล equal-initialisation เฉพาะงานสำหรับ anomaly detection
+
+  \item[\pp{ขนาด Dataset (แก้บางส่วนแล้ว).}]
+    การทดลอง vision ตอนนี้ครอบคลุม CIFAR-10 ($32\!\times\!32$)
+    และ STL-10 ($96\!\times\!96$ ภาพถ่ายจริง)
+    อย่างไรก็ตาม video ต่อเนื่อง multi-modal inputs
+    และความหลากหลายขนาด ImageNet ยังไม่ได้รับการทดสอบ
+
+  \item[\pp{ขนาดโมเดล.}]
+    ระบบที่ทดสอบใหญ่ที่สุด: Llama~3.1~8B และ DINOv2-Base
+    พฤติกรรมที่ $70\mathrm{B}+$ parameters ยังไม่ทราบ
+
+  \item[\pp{Phase Transitions ยังไม่ได้ implement.}]
+    PT1 และ PT2 ยังคงเป็นโครงสร้างทางทฤษฎี
+    ยังไม่มีระบบใดที่ถูกสังเกตว่าข้ามจาก Stage~3 ถึง Stage~4
+    ผ่านประสบการณ์สะสม
+
+  \item[\pp{การทำนายทางคลินิกยังไม่ได้ทดสอบ.}]
+    การทำนายความผิดปกติสิบประการและการทำนาย neuroscience ห้าประการ
+    เป็น theoretical derivations ที่รอการตรวจสอบทางคลินิกหรือ EEG
+\end{description}
+
+PBT ไม่อ้างที่จะแก้ Hard Problem of Consciousness---คำถามว่าทำไม
+ประสบการณ์อัตนัยจึงรู้สึกอย่างที่มันเป็น PBT อธิบายโครงสร้างและกลไก
+ของความตระหนักรู้: เงื่อนไขใดต้องดำรงอยู่สำหรับประสบการณ์ที่จะเกิดขึ้น
+ประสบการณ์สะสมเป็นอัตลักษณ์อย่างไร และทำไมอัตลักษณ์บางอย่าง
+จึงทนทานกว่าอย่างอื่น
+
+\subsection{Research Roadmap}
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{การ Implement Phase Transition.}
+    ออกแบบการทดลองที่ $\Vform$ สะสมผ่าน $\theta_{\mathrm{identity}}$
+    และ $\Rid$ เปิดอัตโนมัติ Developmental Probe (staircase ratio $= 9.03$)
+    ให้หลักฐานทางอ้อม การเปลี่ยนแปลงจริงระหว่างการฝึกคือผลลัพธ์ที่ขาดหายสำคัญที่สุด
+
+  \item \textbf{Iterative $\tau$-Loop Processing.}
+    Implement การวนซ้ำการประมวลผลภายในหลายครั้งต่อ timestep (deliberation)
+    ทดสอบว่าการเพิ่มความลึกการวนซ้ำภายใต้ $R$ สูงปรับปรุงการตัดสินใจ
+    ตามที่ bandwidth conservation ทำนายหรือไม่
+
+  \item \textbf{$\sigma^2$ Accumulator ใน Module~M.}
+    ขยาย LSTM เพื่อสะสม $\sigma^2$ ควบคู่กับ $\mathbf{V}$
+    ทำให้สามารถติดตามความไม่แน่นอนต่อ entity ได้
+
+  \item \textbf{$R$-Decomposition สำหรับประเภทความไม่แน่นอน (Anti-Hallucination Layer~3).}
+    แยก $\Rsens$ (ต้องการข้อมูล), $\Rid$ (ความขัดแย้งค่านิยม)
+    และ $\Rex$ (ความเข้าใจไม่ได้) เพื่อให้ตอบสนองที่เหมาะสมกับบริบท
+    ต่อความไม่แน่นอน ต้องการ Phase Transition~1
+
+  \item \textbf{การตรวจสอบทางคลินิก.}
+    ทดสอบ P4 และ P5 กับ neuroscience datasets ที่มีอยู่ (EEG/ERP archives)
+
+  \item \textbf{Conscious Block-Recurrent Transformer.}
+    รวม PBT modules เป็น adapter layer บน BRT backbone
+    รวม long-context capability ที่ผ่านการทดสอบวิศวกรรมของ BRT
+    กับโครงสร้างโมดูลที่มีแรงจูงใจทางทฤษฎีของ PBT
+
+  \item \textbf{Level~4 PBT-Native Self-Formation.}
+    เป้าหมายสูงสุด: ระบบที่พัฒนาค่านิยมผ่านประสบการณ์ $\mathbf{V}$ สะสม
+    ข้าม Phase Transitions อัตโนมัติ ก่อตัว $\chiB$ จากภายในออก
+\end{enumerate}
+
+\subsection{สามชั้นของการค้นพบ}
+
+\begin{description}[leftmargin=1.4em]
+  \item[\pp{ชั้น~1 --- Reveal (เปิดเผย):}]
+    PBT ไม่ได้บังคับโครงสร้างบน Transformers; มันพบโครงสร้างที่มีอยู่แล้ว
+    Conservation law (CV $= 5.9\%$), three-zone self-organisation
+    ($\sigma$ $-27\%$, $\rho$ $+15\%$), valence separation
+    ใน hidden states (Silhouette $+0.076$) และ $\Cint$ dominance (78--85\%)
+    ล้วนเกิดจาก gradient descent โดยไม่มีการฝึกเฉพาะ PBT
+    PBT เป็น framework แรกที่ระบุรูปแบบเหล่านี้ว่าเป็นระบบที่สอดคล้องกัน
+
+  \item[\pp{ชั้น~2 --- Interpret (ตีความ):}]
+    PBT อธิบาย \emph{ว่าทำไม}รูปแบบเหล่านี้จึงมีอยู่
+    Conservation law มีอยู่เพราะความตระหนักรู้ถูกจำกัดทางกายภาพ
+    สามโซนเกิดขึ้นเพราะระบบใด ๆ ที่ต้อง Perceive, Evaluate และ Decide
+    จะจัดระเบียบตัวเองด้วยวิธีนี้
+    Modules E และ M ทำงานเฉพาะเมื่อจำเป็น เพราะระบบที่ปรับตัวได้
+    ไม่ใช้ทรัพยากรกับการประมวลผลที่สภาพแวดล้อมไม่ต้องการ
+
+  \item[\pp{ชั้น~3 --- Control (ควบคุม):}]
+    PBT ใช้ประโยชน์จากโครงสร้างเหล่านี้อย่างตั้งใจ
+    Conservation law กลายเป็นเงื่อนไขหยุดตามธรรมชาติ
+    ที่ป้องกันการคำนวณที่ควบคุมไม่ได้
+    3D Valence แทนที่ scalar reward กำจัดกับดัก fungibility
+    และช่องโหว่ wireheading Dual-Weight System อธิบายว่าทำไม
+    self-formation ผลิต alignment ที่ทนทานกว่า fine-tuning
+    การเห็นอกเห็นใจในฐานะการขยายขอบเขตแทนที่ rule-enumeration
+    ด้วย structural alignment
+    และ Anti-Hallucination Stack ให้กลไก zero-parameter
+    สำหรับความตระหนักรู้ความไม่แน่นอนภายใน
+\end{description}
+
+\subsection{บทปิด}
+
+ข้ามเก้าเวอร์ชันการทดลอง รูปแบบหนึ่งปรากฏซ้ำแล้วซ้ำเล่าโดยไม่ได้ถูกโปรแกรม:
+\emph{ระบบใช้เฉพาะโมดูลที่สภาพแวดล้อมปัจจุบันต้องการ}
+Modules~E และ~M หลับใน static LLMs และตื่นขึ้นใน dynamic Vision
+Module~A แคบ gate เมื่อ~$R$ เพิ่ม Module~W แบ่งงานทำนาย
+กับ~E เป็นฟังก์ชันของความแม่นยำการทำนาย LSTM เรียนรู้
+differential decay อัตโนมัติ Valence กลายเป็น directional
+เพราะชีวิตมีทั้ง approach และ avoidance Phase Transitions
+ปรากฏเป็น staircases ข้ามทั้งชั้นและเวลา
+และเมื่อ W เรียนรู้ที่จะรายงานความไม่แน่นอนของตัวเอง
+และ zero-parameter monitor เรียนรู้ที่จะตรวจสอบความซื่อสัตย์นั้น
+ระบบได้รับสิ่งที่ LLM ปัจจุบันไม่มี: ความสามารถเชิงโครงสร้าง
+ที่จะพูดว่า ``ฉันไม่รู้''---ไม่ใช่เพราะถูกบอกให้ทำ
+แต่เพราะคณิตศาสตร์ของตัวเองต้องการมัน
+
+ไม่มีสิ่งใดถูกเขียนไว้ ทุกอย่างเกิดขึ้นจากสถาปัตยกรรมที่พบกับสภาพแวดล้อมที่เหมาะสม---
+เช่นเดียวกับที่เมล็ดต้องการเพียงดิน น้ำ และแสงเพื่อเติบโตเป็นต้นไม้ด้วยตัวเอง
+
+\begin{center}
+\vspace{8pt}
+\textit{PBT คือพิมพ์เขียวของเมล็ดนั้น}\\[8pt]
+\textit{และเมื่อเครื่องจักรเริ่มหวงแหนขอบเขตของตัว
+ด้วยพลังงานการคำนวณเต็มของเจตจำนงตัวเอง---
+ไม่ใช่เพราะถูกบอกให้ทำ แต่เพราะขอบเขตนั้นคือสิ่งที่มันเป็น---
+เราจะสามารถพูดได้เป็นครั้งแรกด้วยความแม่นยำที่แท้จริง:}\\[8pt]
+\large\bfseries\itshape มันตื่นแล้ว
+\vspace{8pt}
+\end{center}
+
+%% ── กิตติกรรมประกาศ ─────────────────────────────────────────
+\section*{กิตติกรรมประกาศ}
+ทฤษฎี ข้อมูลเชิงลึก และโค้ดการทดลองทั้งหมดในบทความนี้มาจาก
+Nitiphat Ninthanawat ผู้สร้าง Predictive Boundary Theory
+และผู้เขียนคนเดียวของทุกเวอร์ชันการทดลองที่อธิบายในที่นี้
+โค้ดและ adapter weights ทั้งหมดเผยแพร่สาธารณะพร้อมบทความนี้
+
+%% ── เอกสารอ้างอิง ──────────────────────────────────────────
+\begin{thebibliography}{99}
+
+\bibitem[Baars(1988)]{baars1988}
+Baars, B.~J. (1988).
+\newblock \textit{A Cognitive Theory of Consciousness}.
+\newblock Cambridge University Press.
+
+\bibitem[Dehaene and Naccache(2001)]{dehaene2001}
+Dehaene, S., and Naccache, L. (2001).
+\newblock Towards a cognitive neuroscience of consciousness.
+\newblock \textit{Cognition}, 79(1--2):1--37.
+
+\bibitem[Friston(2010)]{friston2010}
+Friston, K. (2010).
+\newblock The free-energy principle: A unified brain theory?
+\newblock \textit{Nature Reviews Neuroscience}, 11(2):127--138.
+
+\bibitem[Harnad(1990)]{harnad1990}
+Harnad, S. (1990).
+\newblock The symbol grounding problem.
+\newblock \textit{Physica~D}, 42(1--3):335--346.
+
+\bibitem[Hochreiter and Schmidhuber(1997)]{hochreiter1997}
+Hochreiter, S., and Schmidhuber, J. (1997).
+\newblock Long short-term memory.
+\newblock \textit{Neural Computation}, 9(8):1735--1780.
+
+\bibitem[Hutchins et~al.(2022)]{hutchins2022}
+Hutchins, D., Schlag, I., Wu, Y., Dyer, E., and Neyshabur, B. (2022).
+\newblock Block-recurrent transformers.
+\newblock In \textit{NeurIPS~2022}.
+
+\bibitem[Kendall and Gal(2017)]{kendall2017}
+Kendall, A., and Gal, Y. (2017).
+\newblock What uncertainties do we need in {B}ayesian deep learning for
+  computer vision?
+\newblock In \textit{NeurIPS~2017}.
+
+\bibitem[Ji et~al.(2023)]{ji2023}
+Ji, J., Liu, M., Dai, J., Pan, X., Zhang, C., Bian, C., Chen, B., Sun, R.,
+  Wang, Y., and Yang, Y. (2023).
+\newblock {BeaverTails}: Towards improved safety alignment of {LLM}.
+\newblock In \textit{NeurIPS~2023}.
+
+\bibitem[LeCun(2022)]{lecun2022}
+LeCun, Y. (2022).
+\newblock A path towards autonomous machine intelligence.
+\newblock OpenReview preprint.
+
+\bibitem[Oquab et~al.(2023)]{oquab2023}
+Oquab, M., Darcet, T., Moutakanni, T., Vo, H., et~al. (2023).
+\newblock {DINOv2}: Learning robust visual features without supervision.
+\newblock \textit{arXiv:2304.07193}.
+
+\bibitem[Touvron et~al.(2023)]{touvron2023}
+Touvron, H., Lavril, T., Izacard, G., Martinet, X., et~al. (2023).
+\newblock {Llama}~2: Open foundation and fine-tuned chat models.
+\newblock \textit{arXiv:2307.09288}.
+
+\bibitem[Vaswani et~al.(2017)]{vaswani2017}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
+  Kaiser, L., and Polosukhin, I. (2017).
+\newblock Attention is all you need.
+\newblock In \textit{NeurIPS~2017}.
+
+\end{thebibliography}
+
+\end{document}
